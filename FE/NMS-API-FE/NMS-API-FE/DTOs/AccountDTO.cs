@@ -8,8 +8,8 @@ namespace NMS_API_FE.DTOs
 {
     public class AccountLoginDTO
     {
-        public required string AccountEmail { get; set; }
-        public required string Password { get; set; }
+        public required string accountEmail { get; set; }
+        public required string accountPassword { get; set; }
     }
     public class AccountCreateDTO
     {

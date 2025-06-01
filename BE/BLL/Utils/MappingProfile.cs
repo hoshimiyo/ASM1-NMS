@@ -8,7 +8,12 @@ namespace BLL.Utils
     {
         public MappingProfile()
         {
-            CreateMap<Category, CategoryDTO>();
+            CreateMap<CategoryDTO, Category>()
+                .ForMember(dest => dest.CategoryId, opt => opt.Ignore()) // Typically ignore ID for creation
+                .ReverseMap(); // Optional: if you need reverse mapping
+
+            CreateMap<CategoryCreateDTO, Category>().ReverseMap();
+
             CreateMap<SystemAccount, AccountDTO>()
                 .ForMember(dest => dest.Password, opt => opt.Ignore());
 

@@ -1,6 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 using NMS_API_FE.DTOs;
 using NMS_API_FE.Services.Interfaces;
+using System.Data;
+using System.Security.Principal;
 using System.Threading.Tasks;
 
 namespace NMS_API_FE.Controllers
@@ -13,19 +17,56 @@ namespace NMS_API_FE.Controllers
             _accountService = accountService;
         }
 
-        public async Task<IActionResult> Login(AccountLoginDTO loginDTO)
+        public IActionResult Login() => View();
+
+        [HttpPost]
+        public async Task<IActionResult> Login(AccountLoginDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                // Return the same view with validation errors
+                return View(model);
+            }
+
+            // Your login logic
+            var result = await _accountService.Login(model);
+
+            if (result == null)
+            {
+                TempData["Error"] = "Invalid email or password.";
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Redirect based on the user's role
+            return result.Role switch
+            {
+                3 => RedirectToAction("ManageAccounts", "Admin"),
+                1 => RedirectToAction("Index", "Categories"),
+                2 => RedirectToAction("All", "Lecturer"),
+                _ => RedirectToAction("All", "Guest") // Default fallback
+            };
+        }
+        
+
+        public IActionResult Register()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(AccountCreateDTO registerDTO)
         {
             if (ModelState.IsValid)
             {
-                await _accountService.Login(loginDTO);
-                return View(loginDTO);
+                await _accountService.Register(registerDTO);
+                return RedirectToAction(nameof(Login));
             }
-            return View("Index");
+            return View(ModelState);
         }
 
         public IActionResult Logout()
         {
-            return View();
+            return RedirectToAction("All", "Guest");
         }
     }
 }

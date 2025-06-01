@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace BLL.DTOs
 {
-
+    public class AccountLoginDTO
+    {
+        public required string accountEmail { get; set; }
+        public required string accountPassword { get; set; }
+    }
     public class AccountCreateDTO
     {
         public required string AccountName { get; set; }

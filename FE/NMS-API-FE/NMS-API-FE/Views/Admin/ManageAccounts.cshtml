@@ -1,0 +1,229 @@
+﻿@model IEnumerable<SystemAccountViewModel>
+
+@{
+    ViewData["Title"] = "Manage Accounts";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    /* Styling for Manage System Accounts - Card Layout with Colorless Action Links */
+
+    /* Theme Variables - Consistent with other admin pages */
+    :root {
+        --primary-color: #0056b3; /* Updated primary color */
+        --secondary-color: #6c757d;
+        --background-color: #f8f9fa;
+        --text-color: #343a40;
+        --accent-color: #ffc107;
+        --account-card-background: #ffffff; /* Background for account cards */
+        --account-card-border: #dee2e6;
+        --account-card-border-radius: 8px;
+        --account-card-padding: 20px;
+        --account-card-margin-bottom: 20px;
+        --account-action-color: var(--primary-color);
+        --account-action-hover-color: darken(var(--account-action-color), 10%);
+        --account-meta-color: var(--secondary-color);
+    }
+
+    body {
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1 {
+        color: var(--primary-color);
+        margin-bottom: 25px;
+        text-align: center;
+    }
+
+    .accounts-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); /* Responsive grid for accounts */
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    .account-card { /* Renamed from account-item to account-card for clarity */
+        background-color: var(--account-card-background);
+        border: 1px solid var(--account-card-border);
+        border-radius: var(--account-card-border-radius);
+        padding: var(--account-card-padding);
+        margin-bottom: var(--account-card-margin-bottom);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.07); /* Subtle shadow */
+        transition: transform 0.2s ease-in-out; /* Hover effect */
+    }
+
+        .account-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* Stronger shadow on hover */
+        }
+
+    .account-name { /* Style for Account Name */
+        margin-top: 0;
+        margin-bottom: 10px;
+        color: var(--primary-color);
+        font-size: 1.8em;
+        font-weight: bold;
+        word-wrap: break-word; /* Handle long names */
+    }
+
+    .account-role { /* Style for Account Role */
+        margin-top: 0;
+        margin-bottom: 15px;
+        color: var(--secondary-color);
+        font-size: 1.2em;
+        font-style: italic;
+    }
+
+    .account-meta { /* Style for Email and Password */
+        font-size: 0.95em;
+        color: var(--account-meta-color);
+        margin-bottom: 10px;
+    }
+
+    .password-display {
+        display: inline-block;
+        margin-left: 5px;
+    }
+
+    .show-password-button {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.9rem;
+        border-radius: 0.2rem;
+        margin-left: 8px;
+    }
+
+
+    .account-actions { /* Actions for each account */
+        text-align: right;
+        margin-top: 25px;
+    }
+
+        .account-actions a {
+            color: var(--account-action-color);
+            text-decoration: none;
+            margin-left: 8px;
+            padding: 10px 15px;
+            border: none; /* Removed border for colorless buttons */
+            border-radius: 5px;
+            transition: background-color 0.2s ease, color 0.2s ease;
+            display: inline-block; /* Ensure actions are inline */
+        }
+
+            .account-actions a:hover {
+                background-color: transparent; /* Make hover background transparent for colorless buttons */
+                color: var(--account-action-color); /* Keep text color on hover */
+            }
+
+
+    .create-new-account-button {
+        display: block;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+        .create-new-account-button a {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: var(--primary-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 1.1rem;
+            transition: background-color 0.2s ease;
+        }
+
+            .create-new-account-button a:hover {
+                background-color: darken(var(--primary-color), 10%);
+            }
+
+</style>
+
+@section Scripts {
+    <script>
+        function togglePasswordVisibility(accountId) {
+            var passwordSpan = document.getElementById('password-' + accountId);
+            var passwordButton = document.getElementById('show-password-btn-' + accountId);
+            var hiddenPassword = passwordSpan.getAttribute('data-hidden-password');
+
+            if (passwordSpan.textContent === '********') { // Placeholder text
+                passwordSpan.textContent = hiddenPassword;
+                passwordButton.textContent = 'Hide Password';
+            } else {
+                passwordSpan.textContent = '********'; // Back to placeholder
+                passwordButton.textContent = 'Show Password';
+            }
+        }
+    </script>
+}
+
+<h1>Manage System Accounts</h1>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success">@TempData["Message"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
+<p class="create-new-button">
+<p class="create-new-account-button">
+    <a asp-action="CreateAccount" class="btn btn-primary">Create New Account</a>
+</p>
+
+<div class="search-bar">
+    <form asp-action="SearchAccount">
+        <div class="input-group">
+            <input type="text" name="searchTerm" class="form-control" placeholder="Search by name or email" />
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="submit">Search</button>
+            </div>
+        </div>
+    </form>
+</div>
+<br/>
+
+<div class="accounts-container">
+    @foreach (var item in Model)
+    {
+        <div class="account-card">
+            <h2 class="account-name">
+                @Html.DisplayFor(modelItem => item.AccountName)
+            </h2>
+            <h4 class="account-role">
+                Role:
+                @if (item.AccountRole == 1)
+                {
+                    <span>Staff</span>
+                }
+                else if (item.AccountRole == 2)
+                {
+                    <span>Lecturer</span>
+                }
+                else if (item.AccountRole == 3)
+                {
+                    <span>Admin</span>
+                }
+
+                else
+                {
+                    @Html.DisplayFor(modelItem => item.AccountRole)
+                    // Fallback for other roles if any
+                }
+            </h4>
+            <div class="account-meta">
+                Email: @Html.DisplayFor(modelItem => item.AccountEmail)
+            </div>
+
+
+            <div class="account-actions">
+                <a asp-action="EditAccount" asp-route-id="@item.AccountId">Edit</a>
+                <a asp-action="DetailsAccount" asp-route-id="@item.AccountId">Details</a>
+                <a asp-action="DeleteAccount" asp-route-id="@item.AccountId">Delete</a>
+            </div>
+        </div>
+    }
+</div>

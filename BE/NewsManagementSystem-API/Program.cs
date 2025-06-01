@@ -1,15 +1,17 @@
+using AutoMapper;
 using BLL.Interfaces;
 using BLL.Services;
+using BLL.Utils;
 using DAL.Data;
+using DAL.Interfaces;
+using DAL.Repositories;
 using DAL.UnitOfWork;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using AutoMapper;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using DAL.Interfaces;
-using DAL.Repositories;
-using BLL.Utils;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +22,12 @@ var config = new MapperConfiguration(cfg =>
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 // Add services to the container.
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 
 builder.Services.AddDbContext<NewsContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -67,7 +74,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 
-
+    
 // Register services
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAccountService, AccountService>();

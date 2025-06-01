@@ -34,7 +34,7 @@ namespace NewsManagementSystem.Controllers
             return Ok(accounts);
         }
 
-        [HttpPost("DetailsAccount/{id}")]
+        [HttpGet("DetailsAccount/{id}")]
         public async Task<ActionResult<SystemAccount>> DetailsAccount(int id)
         {
             var account = await _accountService.GetAccountByIdAsync(id);
@@ -70,8 +70,8 @@ namespace NewsManagementSystem.Controllers
 
 
         // POST: /Admin/DeleteAccount/{id}
-        [HttpPost("DeleteConfirmed/{id}")]
-        public async Task<ActionResult> DeleteConfirmed(int id)
+        [HttpDelete("DeleteAccount/{id}")]
+        public async Task<ActionResult> DeleteAccount(int id)
         {
             var account = await _accountService.GetAccountByIdAsync(id);
             if (account == null) return NotFound();

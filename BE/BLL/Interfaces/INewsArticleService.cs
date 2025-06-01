@@ -11,8 +11,8 @@ namespace BLL.Interfaces
 {
     public interface INewsArticleService
     {
-        Task CreateNewsArticleAsync(NewsArticleCreateDTO dto, HttpContext httpContext);
-        Task UpdateNewsArticleAsync(string id, NewsArticleUpdateDTO dto, HttpContext httpContext);
+        Task CreateNewsArticleAsync(NewsArticleCreateDTO dto);
+        Task UpdateNewsArticleAsync(string id, NewsArticleUpdateDTO dto);
         Task DeactiveNewsArticleAsync(string id);
         Task<NewsArticle> GetNewsArticleByIdAsync(string id);
         Task<IEnumerable<NewsArticle>> GetAllNewsArticlesAsync();

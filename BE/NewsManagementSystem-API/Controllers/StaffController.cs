@@ -45,19 +45,20 @@ namespace NewsManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                var category = _mapper.Map<Category>(dto);
-                await _categoryService.CreateCategoryAsync(category);
-                return RedirectToAction(nameof(ManageCategories));
+                var cate = _mapper.Map<Category>(dto); // Map DTO to Entity
+                await _categoryService.CreateCategoryAsync(cate);
+                return Ok(dto); // Return the DTO back to the client
             }
-            return Ok(dto);
+            return BadRequest(dto);
         }
 
         // POST: /Staff/EditCategory/{id}
         [HttpPut("EditCategory/{id}")]
-        public async Task<ActionResult> EditCategory(int id, Category category)
+        public async Task<ActionResult> EditCategory(int id, CategoryDTO dto)
         {
             if (ModelState.IsValid)
             {
+                var category = _mapper.Map<Category>(dto); // Map DTO to Entity
                 await _categoryService.UpdateCategoryAsync(id, category);
                 return Ok(category);
             }
@@ -94,15 +95,15 @@ namespace NewsManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _newsArticleService.CreateNewsArticleAsync(dto, HttpContext);
+                await _newsArticleService.CreateNewsArticleAsync(dto);
                 return Ok(dto);
             }
             return BadRequest(ModelState);
         }
 
         // GET: /Staff/EditNewsArticle/{id}
-        [HttpGet("EditNewsArticle/{id}")]
-        public async Task<ActionResult> EditNewsArticle(string id)
+        [HttpGet("NewsArticleDetail/{id}")]
+        public async Task<ActionResult> NewsArticleDetail(string id)
         {
             var article = await _newsArticleService.GetNewsArticleByIdAsync(id);
             if (article == null) return NotFound();
@@ -115,7 +116,7 @@ namespace NewsManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _newsArticleService.UpdateNewsArticleAsync(id, dto, HttpContext);
+                await _newsArticleService.UpdateNewsArticleAsync(id, dto);
                 return Ok(dto);
             }
             return BadRequest(ModelState);
