@@ -29,12 +29,12 @@ namespace NewsManagementSystem_API.Controllers
 
         // POST: /Account/Login
         [HttpPost("Login")]
-        public async Task<ActionResult<ClaimsIdentity>> Login(string email, string password)
+        public async Task<ActionResult<ClaimsIdentity>> Login(AccountLoginDTO dtos)
         {
             string adminEmail = _configuration["AdminCredentials:Email"];
             string adminPassword = _configuration["AdminCredentials:Password"];
 
-            if (email == adminEmail && password == adminPassword)
+            if (dtos.accountEmail == adminEmail && dtos.accountPassword == adminPassword)
             {
                 var adminClaims = new List<Claim>
                 {
@@ -50,15 +50,14 @@ namespace NewsManagementSystem_API.Controllers
 
                 return Ok(new
                 {
-                    Token = adminClaims,
-                    UserId = "Admin",
+                    UserId = "-5",
                     Name = "Administrator",
                     Role = "3"
                 });
             }
 
 
-            var account = await _accountService.AuthenticateAsync(email, password);
+            var account = await _accountService.AuthenticateAsync(dtos.accountEmail, dtos.accountPassword);
             if (account == null)
             {
                 return Unauthorized(new { message = "Invalid email or password." });
@@ -76,9 +75,9 @@ namespace NewsManagementSystem_API.Controllers
 
             var claims = new List<Claim>
                 {
-                new(ClaimTypes.NameIdentifier, account.AccountId.ToString()),
-                new(ClaimTypes.Name, account.AccountName),
-                new(ClaimTypes.Role, account.AccountRole.ToString())
+                    new(ClaimTypes.NameIdentifier, account.AccountId.ToString()),
+                    new(ClaimTypes.Name, account.AccountName),
+                    new(ClaimTypes.Role, account.AccountRole.ToString())
                 };
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -91,7 +90,6 @@ namespace NewsManagementSystem_API.Controllers
 
             return Ok(new
             {
-                Token = claims,
                 UserId = account.AccountId,
                 Name = account.AccountName,
                 Role = account.AccountRole

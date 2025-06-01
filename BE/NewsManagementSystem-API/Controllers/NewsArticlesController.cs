@@ -66,7 +66,7 @@ namespace NewsManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _newsArticleService.CreateNewsArticleAsync(newsArticle, HttpContext);
+                await _newsArticleService.CreateNewsArticleAsync(newsArticle);
                 return Ok(new { message = "Article created successfully." });
             }
 
@@ -79,7 +79,7 @@ namespace NewsManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _newsArticleService.UpdateNewsArticleAsync(id, newsArticle, HttpContext);
+                await _newsArticleService.UpdateNewsArticleAsync(id, newsArticle);
                 return Ok(new { message = "Article updated successfully." });
             }
             return BadRequest(new { message = "Failed to update article.", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });

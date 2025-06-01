@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using DAL.Data;
 using DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
+using BLL.Interfaces;
+using BLL.DTOs;
 
 namespace NewsManagementSystem.Controllers
 {
@@ -16,18 +18,17 @@ namespace NewsManagementSystem.Controllers
     //[Authorize(Policy = "Staff")]
     public class CategoriesController : ControllerBase
     {
-        private readonly NewsContext _context;
-
-        public CategoriesController(NewsContext context)
+        private readonly ICategoryService _categoryService;
+        public CategoriesController(ICategoryService categoryService)
         {
-            _context = context;
+            _categoryService = categoryService;
         }
 
         // GET: Categories
         [HttpGet("GetAllCategories")]
         public async Task<ActionResult> GetAllCategories()
         {
-            var newsContext = _context.Categories.Include(c => c.ParentCategory);
+            var newsContext = await _categoryService.GetActiveCategoriesAsync();
             return Ok(newsContext);
         }
 
@@ -40,9 +41,7 @@ namespace NewsManagementSystem.Controllers
                 return NotFound();
             }
 
-            var category = await _context.Categories
-                .Include(c => c.ParentCategory)
-                .FirstOrDefaultAsync(m => m.CategoryId == id);
+            var category = await _categoryService.GetCategoryByIdAsync(id.Value);
             if (category == null)
             {
                 return NotFound();
@@ -53,53 +52,46 @@ namespace NewsManagementSystem.Controllers
 
         // POST: Categories/Create
         [HttpPost("Create")]
-        public async Task<ActionResult> Create([Bind("CategoryId,CategoryName,CategoryDescription,IsActive,ParentCategoryId")] Category category) 
+        public async Task<ActionResult> Create(Category categoryCreateDTO)
         {
-            //if (ModelState.IsValid)
-            //{
-            //    _context.Add(category);
-            //    await _context.SaveChangesAsync();
-            //    return Ok(category);
-            //}
-
-            ////"ParentCategoryId" = new SelectList(_context.Categories, "CategoryId", "CategoryDescription", category.ParentCategoryId);
-
-            //return BadRequest(category);
-            throw new NotImplementedException();
+            if (ModelState.IsValid)
+            {
+                await _categoryService.CreateCategoryAsync(categoryCreateDTO);
+                return Ok(categoryCreateDTO);
+            }
+            return BadRequest(categoryCreateDTO);
         }
 
 
         // POST: Categories/Edit/5
         [HttpPut("Edit/{id}")]
-        public async Task<IActionResult> Edit(int id, [Bind("CategoryId,CategoryName,CategoryDescription,IsActive,ParentCategoryId")] Category category)
+        public async Task<IActionResult> Edit(int id, Category categoryCreateDTO)
         {
-            //if (id != category.CategoryId)
-            //{
-            //    return NotFound();
-            //}
+            if (id != categoryCreateDTO.CategoryId)
+            {
+                return NotFound();
+            }
 
-            //if (ModelState.IsValid)
-            //{
-            //    try
-            //    {
-            //        _context.Update(category);
-            //        await _context.SaveChangesAsync();
-            //    }
-            //    catch (DbUpdateConcurrencyException)
-            //    {
-            //        if (!CategoryExists(category.CategoryId))
-            //        {
-            //            return NotFound();
-            //        }
-            //        else
-            //        {
-            //            throw;
-            //        }
-            //    }
-            //    return Ok(category);
-            //}
-            //return BadRequest(category);
-            throw new NotImplementedException();
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    await _categoryService.UpdateCategoryAsync(id, categoryCreateDTO);
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!CategoryExists(categoryCreateDTO.CategoryId))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return Ok(categoryCreateDTO);
+            }
+            return BadRequest(categoryCreateDTO);
         }
 
 
@@ -107,26 +99,26 @@ namespace NewsManagementSystem.Controllers
         [HttpDelete("DeleteConfirmed")]
         public async Task<ActionResult> DeleteConfirmed(int id)
         {
-            var category = await _context.Categories.FindAsync(id);
+            var category = await _categoryService.GetCategoryByIdAsync(id);
             if (category != null)
             {
-                _context.Categories.Remove(category);
+                try
+                {
+                    await _categoryService.DeactiveCategoryAsync(id);
+                }
+                catch (DbUpdateException)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, "Failed to delete category.");
+                }
             }
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to delete category.");
-            }
+
             return Ok("Deletion completed");
         }
 
         private bool CategoryExists(int id)
         {
-            return _context.Categories.Any(e => e.CategoryId == id);
+            return _categoryService.GetCategoryByIdAsync(id) != null;
         }
     }
 }
