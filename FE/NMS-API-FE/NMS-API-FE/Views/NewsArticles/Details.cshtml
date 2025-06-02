@@ -9,82 +9,82 @@
     /* Styling for News Details Page - Reader-Friendly Focus */
 
     :root {
-    --primary-color: #0056b3;
-    --secondary-color: #6c757d;
-    --background-color: #f8f9fa;
-    --text-color: #343a40;
-    --accent-color: #ffc107;
-    --article-background: #ffffff;
-    --article-border: #dee2e6;
-    --meta-color: #6c757d;
-
-    --details-page-max-width: 800px; /* Max width for content area */
-    --details-page-padding: 20px;
-    --details-content-font-size: 1.1rem; /* Larger font for content */
-    --details-content-line-height: 1.7; /* Increased line height for readability */
+        --primary-color: #0056b3;
+        --secondary-color: #6c757d;
+        --background-color: #f8f9fa;
+        --text-color: #343a40;
+        --accent-color: #ffc107;
+        --article-background: #ffffff;
+        --article-border: #dee2e6;
+        --meta-color: #6c757d;
+        --details-page-max-width: 800px; /* Max width for content area */
+        --details-page-padding: 20px;
+        --details-content-font-size: 1.1rem; /* Larger font for content */
+        --details-content-line-height: 1.7; /* Increased line height for readability */
     }
 
     body {
-    background-color: var(--background-color);
-    color: var(--text-color);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Reader-friendly font */
-    line-height: 1.6;
+        background-color: var(--background-color);
+        color: var(--text-color);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Reader-friendly font */
+        line-height: 1.6;
     }
 
     .details-container {
-    max-width: var(--details-page-max-width);
-    margin: 20px auto; /* Center the content container */
-    padding: var(--details-page-padding);
-    background-color: var(--article-background);
-    border: 1px solid var(--article-border);
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.05); /* Subtle shadow */
+        max-width: var(--details-page-max-width);
+        margin: 20px auto; /* Center the content container */
+        padding: var(--details-page-padding);
+        background-color: var(--article-background);
+        border: 1px solid var(--article-border);
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.05); /* Subtle shadow */
     }
 
     .news-title {
-    font-size: 2.5em; /* Larger and more prominent title */
-    color: var(--primary-color);
-    margin-bottom: 10px;
-    line-height: 1.2;
+        font-size: 2.5em; /* Larger and more prominent title */
+        color: var(--primary-color);
+        margin-bottom: 10px;
+        line-height: 1.2;
     }
 
     .news-headline {
-    font-size: 1.3em;
-    font-style: italic;
-    color: var(--secondary-color);
-    margin-bottom: 20px;
+        font-size: 1.3em;
+        font-style: italic;
+        color: var(--secondary-color);
+        margin-bottom: 20px;
     }
 
     .meta-info {
-    font-size: 0.95em;
-    color: var(--meta-color);
-    margin-bottom: 25px;
-    border-bottom: 1px solid var(--article-border); /* Separator line */
-    padding-bottom: 10px;
+        font-size: 0.95em;
+        color: var(--meta-color);
+        margin-bottom: 25px;
+        border-bottom: 1px solid var(--article-border); /* Separator line */
+        padding-bottom: 10px;
     }
 
     .news-content {
-    font-size: var(--details-content-font-size);
-    line-height: var(--details-content-line-height);
-    margin-bottom: 30px; /* More space after content */
-    white-space: pre-line; /* Preserve line breaks from NewsContent if any */
+        font-size: var(--details-content-font-size);
+        line-height: var(--details-content-line-height);
+        margin-bottom: 30px; /* More space after content */
+        white-space: pre-line; /* Preserve line breaks from NewsContent if any */
     }
 
     .action-buttons {
-    margin-top: 20px;
-    text-align: right;
+        margin-top: 20px;
+        text-align: right;
     }
 
-    .action-buttons a, .action-buttons button {
-    margin-left: 10px;
-    }
+        .action-buttons a, .action-buttons button {
+            margin-left: 10px;
+        }
 
     td {
-    padding-left: 10px; /* Add left padding for table cells */
+        padding-left: 10px; /* Add left padding for table cells */
     }
 
 </style>
 
+<!-- TempData messages -->
 @if (TempData["Message"] != null)
 {
     <div class="alert alert-success">@TempData["Message"]</div>
@@ -104,7 +104,6 @@
         @Html.DisplayFor(model => model.Headline)
     </h2>
 
-
     <p class="meta-info">
         <table>
             <tr>
@@ -113,7 +112,7 @@
             </tr>
             <tr>
                 <td>Category:</td>
-                <td>@Model.Category?.CategoryDescription</td>
+                <td>@(Model.Category?.CategoryDescription ?? "N/A")</td>
             </tr>
             <tr>
                 <td>Source:</td>
@@ -121,38 +120,44 @@
             </tr>
             <tr>
                 <td>Author:</td>
-                <td>@Html.DisplayFor(model => model.CreatedBy!.AccountName)</td>
+                <td>@(Model.CreatedBy?.AccountName ?? "Unknown")</td>
             </tr>
             <tr>
                 <td>Author's Email:</td>
-                <td>@Model.CreatedBy!.AccountEmail</td>
+                <td>@(Model.CreatedBy?.AccountEmail ?? "N/A")</td>
             </tr>
             <tr>
                 <td>Modified by:</td>
-                <td>@Model.UpdatedBy!.AccountName</td>
+                <td>@(Model.UpdatedBy?.AccountName ?? "N/A")</td>
             </tr>
             <tr>
                 <td>Modified Date:</td>
-                <td>@Model.ModifiedDate</td>
+                <td>@(Model.ModifiedDate?.ToString() ?? "Not modified")</td>
             </tr>
             <tr>
                 <td>Content:</td>
                 <td>@Html.Raw(Model.NewsContent)</td>
             </tr>
-            <tr>
-                <td>Tag:</td>
-                <td>
-                    @foreach (var tag in ViewBag.Tags)
-                    {
-                        <button type="button" class="btn btn-outline-primary">@tag</button>
-                    }
-                </td>
-            </tr>
+            @if (ViewBag.Tags != null)
+            {
+                <tr>
+                    <td>Tag:</td>
+                    <td>
+                        @foreach (var tag in ViewBag.Tags)
+                        {
+                            <button type="button" class="btn btn-outline-primary">@tag</button>
+                        }
+                    </td>
+                </tr>
+            }
         </table>
     </p>
 
     <div class="action-buttons">
-        <a asp-action="Edit" asp-route-id="@Model?.NewsArticleId" class="btn btn-warning">Edit</a>
-        <a asp-action="Index" asp-controller="NewsArticles" class="btn btn-secondary">Back to News List</a> @* Adjusted Back to List link *@
+        @if (Model?.NewsArticleId != null)
+        {
+            <a asp-action="Edit" asp-route-id="@Model.NewsArticleId" class="btn btn-warning">Edit</a>
+        }
+        <a asp-action="Index" asp-controller="NewsArticles" class="btn btn-secondary">Back to News List</a>
     </div>
 </div>

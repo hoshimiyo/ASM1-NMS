@@ -18,7 +18,7 @@ namespace DAL.Repositories
             newsContext = context;
         }
 
-        public async Task<List<Tag>> GetTagsFromArticleAsync(string articleId)
+        public async Task<List<Tag>>    GetTagsFromArticleAsync(string articleId)
         {
             return await newsContext.NewsTags
                                     .Where(nt => nt.NewsArticleId == articleId)

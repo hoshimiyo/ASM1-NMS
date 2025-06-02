@@ -64,17 +64,14 @@ namespace BLL.Services
 
         public async Task<IEnumerable<Tag>> GetTagsOfArticleAsync(string newsArticleId)
         {
+            // Validate article exists
             var article = await _unitOfWork.NewsArticles.GetByIdAsync(newsArticleId);
             if (article == null)
             {
-                throw new KeyNotFoundException($"Article with ID {newsArticleId} not found");
+                return null; // Indicate article not found
             }
 
-            var hasTags = await _unitOfWork.NewsTags.AnyAsync(nt => nt.NewsArticleId == newsArticleId);
-            if (!hasTags)
-            {
-                throw new KeyNotFoundException($"This article has no tags");
-            }
+            // Get tags (empty collection is a valid response)
             var tags = await _unitOfWork.NewsTags.GetTagsFromArticleAsync(newsArticleId);
             return tags;
         }

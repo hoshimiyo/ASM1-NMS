@@ -32,7 +32,15 @@ namespace NewsManagementSystem_API.Controllers
             {
                 return BadRequest("Invalid NewsArticleId.");
             }
+
             var tags = await _newsTagService.GetTagsOfArticleAsync(NewsArticleId);
+
+            if (tags == null)
+            {
+                return NotFound($"Article with ID {NewsArticleId} not found");
+            }
+
+            // Empty collection is a valid response (HTTP 200)
             return Ok(tags);
         }
 

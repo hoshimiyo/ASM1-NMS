@@ -43,7 +43,7 @@ namespace NMS_API_FE.Services
 
         public async Task UpdateNewsArticleAsync(string id, NewsArticleUpdateDTO dto)
         {
-            var response = await _httpClient.PutAsJsonAsync(BaseUrl + "Edot/" + id, dto);
+            var response = await _httpClient.PutAsJsonAsync(BaseUrl + "Edit/" + id, dto);
             response.EnsureSuccessStatusCode();
         }
 

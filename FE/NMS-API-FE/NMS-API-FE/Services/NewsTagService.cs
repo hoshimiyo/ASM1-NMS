@@ -24,7 +24,7 @@ namespace NMS_API_FE.Services
             var response = await _httpClient.GetAsync(BaseUrl + "GetTagsOfArticleAsync/" + NewsArticleId);
             response.EnsureSuccessStatusCode();
             var result = await response.Content.ReadFromJsonAsync<IEnumerable<TagViewModel>>();
-            return result ?? Enumerable.Empty<TagViewModel>();
+            return result;
         }
 
         public async Task<IEnumerable<NewsArticleViewModel>> GetArticlesFromTagAsync(int TagId)
