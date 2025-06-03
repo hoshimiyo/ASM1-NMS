@@ -14,8 +14,8 @@ namespace NMS_API_FE.Services.Interfaces
         Task<NewsArticleViewModel> GetNewsArticleById(string id);
         Task UpdateNewsArticle(string id, NewsArticleUpdateDTO dto);
         Task DeleteNewsArticle(string id);
-        Task<AccountDTO> GetMyProfile();
-        Task UpdateMyProfile(AccountDTO dto);
+        Task<AccountDTO> GetMyProfile(int userId);
+        Task UpdateMyProfile(int userId, AccountDTO dto);
         Task<IEnumerable<IEnumerable<NewsArticleViewModel>>> GetNewsHistory();
     }
 }

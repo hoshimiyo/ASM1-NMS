@@ -7,8 +7,8 @@ namespace NMS_API_FE.Services.Interfaces
     {
         Task<IEnumerable<NewsArticleViewModel>> GetNewsArticlesAsync();
         Task<NewsArticleViewModel> GetNewsArticleByIdAsync(string id);
-        Task CreateNewsArticleAsync(NewsArticleCreateDTO dto);
-        Task UpdateNewsArticleAsync(string id, NewsArticleUpdateDTO dto);
+        Task CreateNewsArticleAsync(NewsArticleCreateDTO dto, int userId);
+        Task UpdateNewsArticleAsync(string id, NewsArticleUpdateDTO dto, int userId);
         Task DeleteNewsArticleAsync(string id);
         Task<IEnumerable<NewsArticleViewModel>> SearchNewsArticles(string searchTerm, int categoryId, int tagId);
     }

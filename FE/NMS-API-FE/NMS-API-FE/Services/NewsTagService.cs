@@ -1,4 +1,5 @@
-﻿using NMS_API_FE.Models;
+﻿using Helpers;
+using NMS_API_FE.Models;
 using NMS_API_FE.Services.Interfaces;
 
 namespace NMS_API_FE.Services
@@ -23,7 +24,7 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "GetTagsOfArticleAsync/" + NewsArticleId);
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<TagViewModel>>();
+            var result = await response.ReadContentAsync<IEnumerable<TagViewModel>>();
             return result ?? Enumerable.Empty<TagViewModel>();
         }
 
@@ -31,7 +32,7 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "GetArticlesFromTag/" + TagId);
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<NewsArticleViewModel>>();
+            var result = await response.ReadContentAsync<IEnumerable<NewsArticleViewModel>>();
             return result ?? Enumerable.Empty<NewsArticleViewModel>();
         }
 

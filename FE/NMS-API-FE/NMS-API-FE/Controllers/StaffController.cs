@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using NMS_API_FE.DTOs;
 using NMS_API_FE.Models;
 using NMS_API_FE.Services.Interfaces;
+using NMS_API_FE.Utils;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -106,7 +108,11 @@ namespace NewsManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _staffService.CreateNewsArticle(dto);
+                var token = Request.Cookies["JwtToken"];
+                Console.WriteLine("TOKEN: "+token);
+                var userIdClaim = JwtUtils.GetClaimValue(token, JwtRegisteredClaimNames.Sub);
+                Console.WriteLine("SOMETHING "+int.Parse(userIdClaim));
+                await _newsArticleService.CreateNewsArticleAsync(dto, int.Parse(userIdClaim));
                 return RedirectToAction(nameof(ManageNewsArticles));
             }
             return View(dto);
@@ -126,7 +132,9 @@ namespace NewsManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _newsArticleService.UpdateNewsArticleAsync(id, dto);
+                var token = Request.Cookies["JwtToken"];
+                var userIdClaim = JwtUtils.GetClaimValue(token, JwtRegisteredClaimNames.Sub);
+                await _newsArticleService.UpdateNewsArticleAsync(id, dto, int.Parse(userIdClaim));
                 return RedirectToAction(nameof(ManageNewsArticles));
             }
             return View(dto);
@@ -143,16 +151,21 @@ namespace NewsManagementSystem.Controllers
         // GET: /Staff/MyProfile
         public async Task<IActionResult> MyProfile()
         {
-            var user = await _staffService.GetMyProfile();
+            var token = Request.Cookies["JwtToken"];
+            var userIdClaim = JwtUtils.GetClaimValue(token, JwtRegisteredClaimNames.Sub);
+            var user = await _staffService.GetMyProfile(int.Parse(userIdClaim));
             return View(user);
         }
 
         [HttpPost]
         public async Task<IActionResult> MyProfile(AccountDTO dto)
         {
+
             if (ModelState.IsValid)
             {
-                await _staffService.UpdateMyProfile(dto);
+                var token = Request.Cookies["JwtToken"];
+                var userIdClaim = JwtUtils.GetClaimValue(token, JwtRegisteredClaimNames.Sub);
+                await _staffService.UpdateMyProfile(int.Parse(userIdClaim), dto);
                 TempData["SuccessMessage"] = "Your profile has been updated successfully!";
                 return RedirectToAction(nameof(MyProfile));
             }

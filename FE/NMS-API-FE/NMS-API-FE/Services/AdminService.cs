@@ -1,4 +1,5 @@
-﻿using NMS_API_FE.DTOs;
+﻿using Helpers;
+using NMS_API_FE.DTOs;
 using NMS_API_FE.Models;
 using NMS_API_FE.Services.Interfaces;
 
@@ -20,7 +21,7 @@ namespace NMS_API_FE.Services
 
             response.EnsureSuccessStatusCode(); // Ensure the request was successful, otherwise throw an exception
 
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<SystemAccountViewModel>>();
+            var result = await response.ReadContentAsync<IEnumerable<SystemAccountViewModel>>();
 
             if (result == null)
             {
@@ -35,7 +36,7 @@ namespace NMS_API_FE.Services
 
             response.EnsureSuccessStatusCode(); // Ensure the request was successful, otherwise throw an exception
 
-            var account = await response.Content.ReadFromJsonAsync<SystemAccountViewModel>();
+            var account = await response.ReadContentAsync<SystemAccountViewModel>();
 
             if (account == null)
             {
@@ -71,7 +72,7 @@ namespace NMS_API_FE.Services
 
             response.EnsureSuccessStatusCode(); // Ensure the request was successful, otherwise throw an exception
 
-            var result = await response.Content.ReadFromJsonAsync<List<NewsArticleViewModel>>();
+            var result = await response.ReadContentAsync<List<NewsArticleViewModel>>();
 
             if (result == null)
             {
@@ -86,7 +87,7 @@ namespace NMS_API_FE.Services
 
             response.EnsureSuccessStatusCode(); // Ensure the request was successful, otherwise throw an exception
 
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<SystemAccountViewModel>>();
+            var result = await response.ReadContentAsync<IEnumerable<SystemAccountViewModel>>();
 
             if (result == null)
             {

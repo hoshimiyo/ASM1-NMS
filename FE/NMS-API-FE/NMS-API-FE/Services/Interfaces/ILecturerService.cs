@@ -5,7 +5,7 @@ namespace NMS_API_FE.Services.Interfaces
     public interface ILecturerService
     {
         Task<IEnumerable<NewsArticleViewModel>> GetNewsArticles();
-        Task<NewsArticleViewModel> GetNewsArticleById(int id);  
+        Task<NewsArticleViewModel> GetNewsArticleById(string id);  
 
     }
 }

@@ -1,4 +1,5 @@
-﻿using NMS_API_FE.DTOs;
+﻿using Helpers;
+using NMS_API_FE.DTOs;
 using NMS_API_FE.Models;
 using NMS_API_FE.Services.Interfaces;
 
@@ -18,7 +19,7 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "GetActiveCategories");
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<CategoryService>>();
+            var result = await response.ReadContentAsync<IEnumerable<CategoryService>>();
             return result ?? Enumerable.Empty<CategoryService>();
         }
 
@@ -44,7 +45,7 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "ManageNewsArticle");
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<NewsArticleViewModel>>();
+            var result = await response.ReadContentAsync<IEnumerable<NewsArticleViewModel>>();
             return result ?? Enumerable.Empty<NewsArticleViewModel>();
         }
 
@@ -52,7 +53,7 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "NewsArticleDetail/" + id);
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<NewsArticleViewModel>();
+            var result = await response.ReadContentAsync<NewsArticleViewModel>();
             return result ?? throw new InvalidOperationException("Article not found");
         }
 
@@ -74,11 +75,11 @@ namespace NMS_API_FE.Services
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task<AccountDTO> GetMyProfile()
+        public async Task<AccountDTO> GetMyProfile(int userId)
         {
-            var response = await _httpClient.GetAsync(BaseUrl + "MyProfile");
+            var response = await _httpClient.GetAsync(BaseUrl + "MyProfile/" + userId);
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<AccountDTO>();
+            var result = await response.ReadContentAsync<AccountDTO>();
             return result ?? new AccountDTO(); // Return an empty AccountDTO if null
         }
 
@@ -86,13 +87,13 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "MyNewsHistory");
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<IEnumerable<NewsArticleViewModel>>>();
+            var result = await response.ReadContentAsync<IEnumerable<IEnumerable<NewsArticleViewModel>>>();
             return result ?? Enumerable.Empty<IEnumerable<NewsArticleViewModel>>(); // Return an empty collection if null
         }
 
-        public async Task UpdateMyProfile(AccountDTO dto)
+        public async Task UpdateMyProfile(int userId, AccountDTO dto)
         {
-            var response = await _httpClient.PutAsJsonAsync(BaseUrl + "MyProfileUpdate", dto);
+            var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}MyProfileUpdate/{userId}", dto);
             response.EnsureSuccessStatusCode();
         }
     }

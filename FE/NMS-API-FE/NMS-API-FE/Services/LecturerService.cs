@@ -1,4 +1,5 @@
-﻿using NMS_API_FE.Models;
+﻿using Helpers;
+using NMS_API_FE.Models;
 using NMS_API_FE.Services.Interfaces;
 
 namespace NMS_API_FE.Services
@@ -17,15 +18,15 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "GetArticlesWithActiveCategories");
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<NewsArticleViewModel>>();
+            var result = await response.ReadContentAsync< IEnumerable<NewsArticleViewModel>>();
             return result;
         }
 
-        public async Task<NewsArticleViewModel> GetNewsArticleById(int id)
+        public async Task<NewsArticleViewModel> GetNewsArticleById(string id)
         {
-            var response = await _httpClient.GetAsync(BaseUrl + "GetArticleById/" + id);
+            var response = await _httpClient.GetAsync(BaseUrl + "Details/" + id);
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<NewsArticleViewModel>();
+            var result = await response.ReadContentAsync<NewsArticleViewModel>();
             return result;
         }
     }

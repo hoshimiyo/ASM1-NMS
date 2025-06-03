@@ -1,4 +1,5 @@
-﻿using NMS_API_FE.DTOs;
+﻿using Helpers;
+using NMS_API_FE.DTOs;
 using NMS_API_FE.Models;
 using NMS_API_FE.Services.Interfaces;
 
@@ -13,9 +14,9 @@ namespace NMS_API_FE.Services
         {
             _httpClient = client ?? throw new ArgumentNullException(nameof(client));
         }
-        public async Task CreateNewsArticleAsync(NewsArticleCreateDTO dto)
+        public async Task CreateNewsArticleAsync(NewsArticleCreateDTO dto, int userId)
         {
-            var response = await _httpClient.PostAsJsonAsync(BaseUrl + "Create", dto);
+            var response = await _httpClient.PostAsJsonAsync(BaseUrl + "Create/" + userId, dto);
             response.EnsureSuccessStatusCode();
         }
 
@@ -29,7 +30,7 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "Details/" + id);
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<NewsArticleViewModel>();
+            var result = await response.ReadContentAsync<NewsArticleViewModel>();
             return result ?? throw new InvalidOperationException("Article not found");
         }
 
@@ -37,13 +38,14 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "GetAllArticles");
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<NewsArticleViewModel>>();
+            var result = await response.ReadContentAsync<IEnumerable<NewsArticleViewModel>>();
             return result ?? Enumerable.Empty<NewsArticleViewModel>();
         }
 
-        public async Task UpdateNewsArticleAsync(string id, NewsArticleUpdateDTO dto)
+        public async Task UpdateNewsArticleAsync(string id, NewsArticleUpdateDTO dto, int userId)
         {
-            var response = await _httpClient.PutAsJsonAsync(BaseUrl + "Edot/" + id, dto);
+            var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}Edit/{id}/{userId}", dto);
+            Console.WriteLine("API URL "+ BaseUrl + "Edit/" + id);
             response.EnsureSuccessStatusCode();
         }
 
@@ -51,7 +53,7 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync($"{BaseUrl}Search?searchTerm={Uri.EscapeDataString(searchTerm)}&categoryId={categoryId}&tagId={tagId}");
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<NewsArticleViewModel>>();
+            var result = await response.ReadContentAsync<IEnumerable<NewsArticleViewModel>>();
             return result ?? Enumerable.Empty<NewsArticleViewModel>();
         }
     }

@@ -67,7 +67,7 @@ namespace NewsManagementSystem.Controllers
         // GET: Categories/Edit/5
         public async Task<IActionResult> Edit(int id)
         {
-            if (id == null)
+            if (id == 0)
             {
                 return NotFound();
             }
@@ -78,8 +78,17 @@ namespace NewsManagementSystem.Controllers
                 return NotFound();
             }
 
+            // Fetch all categories for the dropdown
+            var allCategories = await _categoryService.GetAllCategoriesAsync();
+
+            // Exclude the current category from being selected as its own parent (to avoid circular reference)
+            var parentOptions = allCategories.Where(c => c.CategoryId != category.CategoryId).ToList();
+
+            ViewBag.ParentCategoryId = new SelectList(parentOptions, "CategoryId", "CategoryName", category.ParentCategoryId);
+
             return View(category);
         }
+
 
         // POST: Categories/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
@@ -112,8 +121,15 @@ namespace NewsManagementSystem.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+
+            // Repopulate dropdown on validation failure
+            var allCategories = await _categoryService.GetAllCategoriesAsync();
+            var parentOptions = allCategories.Where(c => c.CategoryId != category.CategoryId).ToList();
+            ViewBag.ParentCategoryId = new SelectList(parentOptions, "CategoryId", "CategoryName", category.ParentCategoryId);
+
             return View(category);
         }
+
 
         // GET: Categories/Delete/5
         public async Task<IActionResult> Delete(int id)

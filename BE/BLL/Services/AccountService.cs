@@ -19,23 +19,23 @@ namespace BLL.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
+        private readonly JwtUtils _jwtUtils;
 
-        public AccountService(IUnitOfWork unitOfWork, IConfiguration configuration)
+        public AccountService(IUnitOfWork unitOfWork, IConfiguration configuration, JwtUtils jwtUtils)
         {
             _unitOfWork = unitOfWork;
             _configuration = configuration;
+            _jwtUtils = jwtUtils;
         }
 
-        public async Task<SystemAccount?> AuthenticateAsync(string email, string password)
+        public async Task<string> AuthenticateAsync(AccountLoginDTO dto)
         {
-            var account = await _unitOfWork.SystemAccounts.GetByEmailAsync(email);
+            var account = await _unitOfWork.SystemAccounts.GetByEmailAsync(dto.accountEmail);
             if (account == null) return null;
+            if (!PasswordUtils.VerifyPassword(dto.accountPassword, account.AccountPasswordHash.ToString())) return null;
+            var token = _jwtUtils.GenerateAccessToken(account);
 
-            if (!PasswordUtils.VerifyPassword(password, account.AccountPasswordHash.ToString())) return null;
-
-
-
-            return account;
+            return token;
         }
 
         public async Task<IEnumerable<SystemAccount>> GetAllAccountsAsync()

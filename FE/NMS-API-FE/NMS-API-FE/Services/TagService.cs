@@ -1,4 +1,5 @@
 ﻿
+using Helpers;
 using NMS_API_FE.DTOs;
 using NMS_API_FE.Models;
 using NMS_API_FE.Services.Interfaces;
@@ -31,7 +32,7 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "GetAllTags");
             response.EnsureSuccessStatusCode(); // Ensure the request was successful, otherwise throw an exception
-            var result = await response.Content.ReadFromJsonAsync<IEnumerable<TagViewModel>>();
+            var result = await response.ReadContentAsync<IEnumerable<TagViewModel>>();
             return result ?? Enumerable.Empty<TagViewModel>();
         }
 
@@ -39,7 +40,7 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "GetTag/" + TagId);
             response.EnsureSuccessStatusCode(); // Ensure the request was successful, otherwise throw an exception
-            var result = await response.Content.ReadFromJsonAsync<TagViewModel>();
+            var result = await response.ReadContentAsync<TagViewModel>();
             return result ?? throw new KeyNotFoundException($"Tag with ID {TagId} not found.");
         }
 

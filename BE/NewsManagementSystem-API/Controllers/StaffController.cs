@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using BLL.DTOs;
 using BLL.Interfaces;
+using BLL.Utils;
 using DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,12 +23,14 @@ namespace NewsManagementSystem.Controllers
         private readonly INewsArticleService _newsArticleService;
         private readonly IMapper _mapper;
         private readonly IAccountService _accountService;
-        public StaffController(ICategoryService categoryService, INewsArticleService newsArticleService, IMapper mapper, IAccountService accountService)
+        private readonly JwtUtils _jwtUtils;
+        public StaffController(ICategoryService categoryService, INewsArticleService newsArticleService, IMapper mapper, IAccountService accountService, JwtUtils jwtUtils)
         {
             _categoryService = categoryService;
             _newsArticleService = newsArticleService;
             _mapper = mapper;
             _accountService = accountService;
+            _jwtUtils = jwtUtils;
 
         }
 
@@ -91,11 +94,11 @@ namespace NewsManagementSystem.Controllers
 
         // POST: /Staff/CreateNewsArticle
         [HttpPost("CreateNewsArticle")]
-        public async Task<ActionResult> CreateNewsArticle(NewsArticleCreateDTO dto)
+        public async Task<ActionResult> CreateNewsArticle(NewsArticleCreateDTO dto, int userId)
         {
             if (ModelState.IsValid)
             {
-                await _newsArticleService.CreateNewsArticleAsync(dto);
+                await _newsArticleService.CreateNewsArticleAsync(dto, userId);
                 return Ok(dto);
             }
             return BadRequest(ModelState);
@@ -111,12 +114,12 @@ namespace NewsManagementSystem.Controllers
         }
 
         // POST: /Staff/EditNewsArticle/{id}
-        [HttpPut("EditNewsArticle/{id}")]
-        public async Task<ActionResult> EditNewsArticle(string id, NewsArticleUpdateDTO dto)
+        [HttpPut("EditNewsArticle/{id}/{userId}")]
+        public async Task<ActionResult> EditNewsArticle(string id, NewsArticleUpdateDTO dto, int userId )
         {
             if (ModelState.IsValid)
             {
-                await _newsArticleService.UpdateNewsArticleAsync(id, dto);
+                await _newsArticleService.UpdateNewsArticleAsync(id, dto, userId);
                 return Ok(dto);
             }
             return BadRequest(ModelState);
@@ -131,22 +134,22 @@ namespace NewsManagementSystem.Controllers
         }
 
         // GET: /Staff/MyProfile'
-        [HttpGet("MyProfile")]
-        public async Task<ActionResult> MyProfile()
+        [HttpGet("MyProfile/{userId}")]
+        public async Task<ActionResult> MyProfile(int userId)
         {
-            var userIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-            var userId = int.Parse(userIdClaim);
             var user = _mapper.Map<AccountDTO>(await _accountService.GetAccountByIdAsync(userId));
+            if(user == null)
+            {
+                return BadRequest("User not found");
+            }
             return Ok(user);
         }
 
-        [HttpPut("MyProfileUpdate")]
-        public async Task<ActionResult> MyProfile(AccountDTO dto)
+        [HttpPut("MyProfileUpdate/{userId}")]
+        public async Task<ActionResult> MyProfile(int userId, AccountDTO dto)
         {
             if (ModelState.IsValid)
             {
-                var userIdClaim = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value;
-                var userId = int.Parse(userIdClaim);
                 await _accountService.UpdateAccountAsync(userId, dto);
                 return Ok(dto);
             }

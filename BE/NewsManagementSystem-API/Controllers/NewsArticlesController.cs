@@ -61,12 +61,12 @@ namespace NewsManagementSystem.Controllers
         }
 
         // POST: NewsArticles/Create
-        [HttpPost("Create")]
-        public async Task<ActionResult> Create(NewsArticleCreateDTO newsArticle)
+        [HttpPost("Create/{userId}")]
+        public async Task<ActionResult> Create(NewsArticleCreateDTO newsArticle, int userId)
         {
             if (ModelState.IsValid)
             {
-                await _newsArticleService.CreateNewsArticleAsync(newsArticle);
+                await _newsArticleService.CreateNewsArticleAsync(newsArticle, userId);
                 return Ok(new { message = "Article created successfully." });
             }
 
@@ -74,12 +74,12 @@ namespace NewsManagementSystem.Controllers
         }
 
         // POST: NewsArticles/Edit/5
-        [HttpPut("Edit/{id}")]
-        public async Task<ActionResult> Edit(string id, NewsArticleUpdateDTO newsArticle)
+        [HttpPut("Edit/{id}/{userId}")]
+        public async Task<ActionResult> Edit(string id, NewsArticleUpdateDTO newsArticle, int userId)
         {
             if (ModelState.IsValid)
             {
-                await _newsArticleService.UpdateNewsArticleAsync(id, newsArticle);
+                await _newsArticleService.UpdateNewsArticleAsync(id, newsArticle, userId);
                 return Ok(new { message = "Article updated successfully." });
             }
             return BadRequest(new { message = "Failed to update article.", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });

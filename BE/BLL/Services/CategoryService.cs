@@ -24,7 +24,7 @@ namespace BLL.Services
 
         public async Task<Category> GetCategoryByIdAsync(int id)
         {
-            return await _unitOfWork.Categories.GetByIdAsync(id);
+            return await _unitOfWork.Categories.GetCategoryById(id);
         }
 
         public async Task CreateCategoryAsync(Category category)

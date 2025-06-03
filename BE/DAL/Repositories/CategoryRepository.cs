@@ -28,6 +28,11 @@ namespace DAL.Repositories
                 .ToListAsync();
         }
 
+        public async Task<Category> GetCategoryById(int id)
+        {
+            return await newsContext.Categories.Include(c => c.ParentCategory).FirstOrDefaultAsync(c => c.CategoryId == id);
+        }
+
         public async Task RemoveAsync(Category category)
         {
             newsContext.Categories.Remove(category);

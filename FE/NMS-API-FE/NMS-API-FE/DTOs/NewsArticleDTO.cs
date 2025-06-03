@@ -11,20 +11,20 @@ namespace NMS_API_FE.DTOs
     // Create DTO (for creating a new article)
     public class NewsArticleCreateDTO
     {
-        public string NewsTitle { get; set; }
+        public string? NewsTitle { get; set; }
 
         [Required]
-        public string Headline { get; set; }
+        public string? Headline { get; set; }
 
-        public string NewsContent { get; set; }
+        public string? NewsContent { get; set; }
 
-        public string NewsSource { get; set; }
+        public string? NewsSource { get; set; }
 
-        public bool NewsStatus { get; set; } = true;
+        public bool? NewsStatus { get; set; } = true;
 
         public int CategoryId { get; set; } = 0; // Category is required when creating
 
-        public List<int> NewsTagIds { get; set; } = new();
+        public List<int>? NewsTagIds { get; set; } = new();
     }
 
     // Update DTO (for updating an existing article)

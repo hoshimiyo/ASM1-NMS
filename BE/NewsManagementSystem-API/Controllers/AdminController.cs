@@ -56,7 +56,7 @@ namespace NewsManagementSystem.Controllers
         }
 
         // POST: /Admin/EditAccount/{id}
-        [HttpPut("{id}")]
+        [HttpPut("EditAccount/{id}")]
         public async Task<ActionResult> EditAccount(int id, AccountUpdateAdminDTO dto)
         {
             if (ModelState.IsValid)

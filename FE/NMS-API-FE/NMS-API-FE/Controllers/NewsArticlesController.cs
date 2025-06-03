@@ -9,6 +9,8 @@ using BLL.Utils;
 using NMS_API_FE.Services.Interfaces;
 using NMS_API_FE.DTOs;
 using NMS_API_FE.Models;
+using NMS_API_FE.Utils;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace NewsManagementSystem.Controllers
 {
@@ -41,24 +43,34 @@ namespace NewsManagementSystem.Controllers
         // GET: NewsArticles/Details/5
         public async Task<IActionResult> Details(string id)
         {
-            if (id == null)
+            try
             {
-                return NotFound();
+                if (id == null)
+                {
+                    return NotFound();
+                }
+
+                var newsArticle = await _newsArticleService.GetNewsArticleByIdAsync(id);
+
+                if (newsArticle == null)
+                {
+                    return NotFound();
+                }
+
+                var tagList = await _newsTagService.GetTagsOfArticleAsync(newsArticle.NewsArticleId);
+                var tags = tagList.Select(t => t.TagName).ToList();
+
+                // Pass the tags to the view using ViewBag
+                ViewBag.Tags = tags;
+
+                return View(newsArticle);
             }
-
-            var newsArticle = await _newsArticleService.GetNewsArticleByIdAsync(id);
-
-            if (newsArticle == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                TempData["Error"] = ex;
+                var list = await _newsArticleService.GetNewsArticlesAsync();
+                return RedirectToAction("Index");
             }
-
-            var tags = _newsTagService.GetTagsOfArticleAsync(newsArticle.NewsArticleId)
-                .Result.Select(t => t.TagName).ToList();
-            // Pass the tags to the view using ViewBag
-            ViewBag.Tags = tags;
-
-            return View(newsArticle);
         }
 
         // GET: NewsArticles/Create
@@ -76,14 +88,16 @@ namespace NewsManagementSystem.Controllers
         // POST: NewsArticles/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(NewsArticleCreateDTO newsArticle)
+        public async Task<IActionResult> Created(NewsArticleCreateDTO newsArticle)
         {
             ViewData["CategoryId"] = new SelectList(await _categoryService.GetAllCategoriesAsync(), "CategoryId", "CategoryName", newsArticle.CategoryId);
             //GetAllTags
-
+            var token = Request.Cookies["JwtToken"];
+            Console.WriteLine("TOKEN: " + token);
+            var userIdClaim = JwtUtils.GetClaimValue(token, JwtRegisteredClaimNames.Sub);
             if (ModelState.IsValid)
             {
-                await _newsArticleService.CreateNewsArticleAsync(newsArticle);
+                await _newsArticleService.CreateNewsArticleAsync(newsArticle, int.Parse(userIdClaim));
                 TempData["Message"] = "Article created successfully.";
                 return RedirectToAction(nameof(Index), "NewsArticles");
             }
@@ -135,7 +149,14 @@ namespace NewsManagementSystem.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _newsArticleService.UpdateNewsArticleAsync(id, newsArticle);
+                var token = Request.Cookies["JwtToken"];
+                if (token == null)
+                {
+                    return BadRequest("Please log in.");
+                }
+
+                var userIdClaim = JwtUtils.GetClaimValue(token, JwtRegisteredClaimNames.Sub);
+                await _newsArticleService.UpdateNewsArticleAsync(id, newsArticle, int.Parse(userIdClaim));
                 TempData["Message"] = "Article updated successfully.";
                 return RedirectToAction(nameof(Index));
             }

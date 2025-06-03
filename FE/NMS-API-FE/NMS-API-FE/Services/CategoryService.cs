@@ -1,4 +1,5 @@
-﻿using NMS_API_FE.Models;
+﻿using Helpers;
+using NMS_API_FE.Models;
 using NMS_API_FE.Services.Interfaces;
 
 namespace NMS_API_FE.Services
@@ -29,7 +30,7 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "GetAllCategories");
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<List<CategoryViewModel>>();
+            var result = await response.ReadContentAsync<List<CategoryViewModel>>();
             return result;
         }
 
@@ -37,7 +38,7 @@ namespace NMS_API_FE.Services
         {
             var response = await _httpClient.GetAsync(BaseUrl + "Details/" + id);
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<CategoryViewModel>();
+            var result = await response.ReadContentAsync<CategoryViewModel>();
             return result;
         }
 

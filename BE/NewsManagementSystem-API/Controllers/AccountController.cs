@@ -20,80 +20,36 @@ namespace NewsManagementSystem_API.Controllers
         private readonly IConfiguration _configuration;
         private readonly IAccountService _accountService;
         private readonly UserUtils _userUtils;
-        public AccountController(IAccountService accountService, UserUtils userUtils, IConfiguration configuration)
+        private readonly JwtUtils _jwtUtils;
+        public AccountController(IAccountService accountService, UserUtils userUtils, IConfiguration configuration, JwtUtils jwtUtils)
         {
             _accountService = accountService;
             _userUtils = userUtils;
             _configuration = configuration;
+            _jwtUtils = jwtUtils;
         }
 
         // POST: /Account/Login
         [HttpPost("Login")]
-        public async Task<ActionResult<ClaimsIdentity>> Login(AccountLoginDTO dtos)
+        public async Task<ActionResult> Login(AccountLoginDTO dtos)
         {
             string adminEmail = _configuration["AdminCredentials:Email"];
             string adminPassword = _configuration["AdminCredentials:Password"];
-
+            string token = await _accountService.AuthenticateAsync(dtos);
             if (dtos.accountEmail == adminEmail && dtos.accountPassword == adminPassword)
             {
-                var adminClaims = new List<Claim>
-                {
-                    new(ClaimTypes.NameIdentifier, "Admin"),
-                    new(ClaimTypes.Name, "Administrator"),
-                    new(ClaimTypes.Role, "3")
-                };
-
-                var adminIdentity = new ClaimsIdentity(adminClaims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var adminPrincipal = new ClaimsPrincipal(adminIdentity);
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, adminPrincipal);
-                HttpContext.User = adminPrincipal;
-
-                return Ok(new
-                {
-                    UserId = "-5",
-                    Name = "Administrator",
-                    Role = "3"
-                });
+                token = _jwtUtils.GenerateAccessTokenAdmin();
+                Console.WriteLine("ADMIN TOKEN :"+ token);
+                return Ok(new { token });
             }
 
-
-            var account = await _accountService.AuthenticateAsync(dtos.accountEmail, dtos.accountPassword);
-            if (account == null)
+            if (token == null)
             {
                 return Unauthorized(new { message = "Invalid email or password." });
             }
 
-            // Define cookie options for the new token
-            var authProperties = new AuthenticationProperties
-            {
-                ExpiresUtc = DateTimeOffset.UtcNow.AddHours(1),
-                IsPersistent = true
-            };
+            return Ok(new { token });
 
-            //// Retrieve user account details after authentication
-            //var user = await _accountService.GetAccountByIdAsync(_userUtils.GetUserFromInputToken(token));
-
-            var claims = new List<Claim>
-                {
-                    new(ClaimTypes.NameIdentifier, account.AccountId.ToString()),
-                    new(ClaimTypes.Name, account.AccountName),
-                    new(ClaimTypes.Role, account.AccountRole.ToString())
-                };
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var principal = new ClaimsPrincipal(claimsIdentity);
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, authProperties);
-            HttpContext.User = principal;
-
-
-            var role = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Role)?.Value;
-
-            return Ok(new
-            {
-                UserId = account.AccountId,
-                Name = account.AccountName,
-                Role = account.AccountRole
-            });
         }
 
         // POST: /Admin/CreateAccount

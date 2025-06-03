@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Helpers;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using NMS_API_FE.ApiResponseModels;
 using NMS_API_FE.DTOs;
@@ -27,11 +28,11 @@ namespace NMS_API_FE.Services
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    throw new HttpRequestException($"Login failed: {errorContent}");
+                    return null;
                 }
 
                 // Deserialize to simplified response
-                return await response.Content.ReadFromJsonAsync<LoginApiResponse>();
+                return await response.ReadContentAsync<LoginApiResponse>();
             }
             catch (Exception ex)
             {

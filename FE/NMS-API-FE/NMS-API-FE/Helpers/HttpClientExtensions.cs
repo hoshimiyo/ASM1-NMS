@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Helpers
 {
@@ -14,6 +15,7 @@ namespace Helpers
             var result = JsonSerializer.Deserialize<T>(
                 dataAsString, new JsonSerializerOptions
                 {
+                    ReferenceHandler = ReferenceHandler.Preserve,
                     PropertyNameCaseInsensitive = true
                 });
 

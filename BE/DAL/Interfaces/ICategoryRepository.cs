@@ -11,6 +11,7 @@ namespace DAL.Interfaces
     {
         Task<IEnumerable<NewsArticle>> GetArticlesByCategoryIdAsync(int categoryId);
         Task<IEnumerable<Category>> GetActiveCategories();
+        Task<Category> GetCategoryById(int id);
         Task RemoveAsync(Category category);
     }
 }

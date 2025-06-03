@@ -7,8 +7,10 @@ using DAL.Interfaces;
 using DAL.Repositories;
 using DAL.UnitOfWork;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -25,6 +27,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
         options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
@@ -40,8 +43,8 @@ TokenService.Initialize(builder.Configuration);
 // JWT token authentication for API endpoints (optional)
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
 .AddCookie(options =>
 {
@@ -52,7 +55,6 @@ builder.Services.AddAuthentication(options =>
 .AddJwtBearer(options =>
 {
     var secretKey = builder.Configuration["Jwt:Secret"];
-    options.TokenValidationParameters.RoleClaimType = "role";
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
@@ -62,19 +64,18 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
         ClockSkew = TimeSpan.Zero,
-        RoleClaimType = "role",
     };
 });
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("Staff", policy => policy.RequireRole("1", "3"));
-    options.AddPolicy("Lecturer", policy => policy.RequireRole("2", "1", "3"));
+    options.AddPolicy("Staff", policy => policy.RequireRole("1"));
+    options.AddPolicy("Lecturer", policy => policy.RequireRole("2"));
     options.AddPolicy("Admin", policy => policy.RequireRole("3"));
 });
 
 
-    
+
 // Register services
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAccountService, AccountService>();
@@ -84,6 +85,7 @@ builder.Services.AddScoped<INewsTagService, NewsTagService>();
 builder.Services.AddScoped<ITagService, TagService>();
 builder.Services.AddScoped<INewsArticleRepository, NewsArticleRepository>();
 builder.Services.AddScoped<UserUtils>();
+builder.Services.AddScoped<JwtUtils>();
 builder.Services.AddScoped<PasswordUtils>();
 builder.Services.AddHttpContextAccessor();
 
@@ -99,7 +101,46 @@ builder.Services.AddSession(options =>
 
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "NMS API",
+        Version = "v1",
+        Description = "API documentation for the NMS",
+        Contact = new OpenApiContact
+        {
+            Name = "Support",
+            Email = "support@example.com",
+            Url = new Uri("https://example.com")
+        }
+    });
+
+    // Enable JWT Authentication in Swagger UI
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Enter 'Bearer <TOKEN>'",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
+    });
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+                        {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                        });
+});
 
 var app = builder.Build();
 
