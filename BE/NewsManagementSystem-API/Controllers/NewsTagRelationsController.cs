@@ -6,23 +6,13 @@ namespace NewsManagementSystem_API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class NewsTagController : Controller
+    public class NewsTagRelationsController : ControllerBase
     {
         private readonly INewsTagService _newsTagService;
-        public NewsTagController(INewsTagService newsTagService)
-        {
-            _newsTagService = newsTagService;
-        }
 
-        [HttpPost("AddNewsTag/{NewsArticleId}/{TagId}")]
-        public async Task<ActionResult> AddNewsTagAsync(string NewsArticleId, int TagId)
+        public NewsTagRelationsController(INewsTagService service)
         {
-            if (string.IsNullOrEmpty(NewsArticleId) || TagId <= 0)
-            {
-                return BadRequest("Invalid NewsArticleId or TagId.");
-            }
-            await _newsTagService.AddNewsTagAsync(NewsArticleId, TagId);
-            return Ok("News tag added successfully.");
+            _newsTagService = service;
         }
 
         [HttpGet("GetTagsOfArticleAsync/{NewsArticleId}")]
@@ -46,16 +36,6 @@ namespace NewsManagementSystem_API.Controllers
             var articles = await _newsTagService.GetArticlesFromTagAsync(TagId);
             return Ok(articles);
         }
-
-        [HttpDelete("DeleteNewsTag/{NewsArticleId}/{TagId}")]
-        public async Task<ActionResult> DeleteNewsTagAsync(string NewsArticleId, int TagId)
-        {
-            if (string.IsNullOrEmpty(NewsArticleId) || TagId <= 0)
-            {
-                return BadRequest("Invalid NewsArticleId or TagId.");
-            }
-            await _newsTagService.DeleteNewsTagAsync(NewsArticleId, TagId);
-            return Ok("News tag deleted successfully.");
-        }
     }
+
 }

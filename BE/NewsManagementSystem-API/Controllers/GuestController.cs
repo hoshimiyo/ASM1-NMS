@@ -1,5 +1,4 @@
 ﻿using BLL.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace NewsManagementSystem.Controllers
@@ -18,7 +17,7 @@ namespace NewsManagementSystem.Controllers
         public async Task<ActionResult> All()
         {
             var list = await _newsArticleService.GetArticlesWithActiveCategories();
-            return Ok(list);
+            return Ok(list.AsQueryable());
         }
     }
 }

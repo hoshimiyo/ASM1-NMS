@@ -6,78 +6,23 @@ using DAL.UnitOfWork;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace NewsManagementSystem.Controllers
 {
+    [Authorize(Policy = "Admin")]
     [Route("api/[controller]")]
     [ApiController]
-    //[Authorize(Policy = "Admin")]
     public class AdminController : ControllerBase
     {
         private readonly IAccountService _accountService;
         private readonly IUnitOfWork _unitOfWork;
-        private readonly INewsArticleService _newsArticleService;
-        private readonly IMapper _mapper;
-        public AdminController(IAccountService accountService, IUnitOfWork unitOfWork, INewsArticleService newsArticleService, IMapper mapper)
+        public AdminController(IAccountService accountService, IUnitOfWork unitOfWork)
         {
             _accountService = accountService;
             _unitOfWork = unitOfWork;
-            _newsArticleService = newsArticleService;
-            _mapper = mapper;
-        }
 
-        // GET: /Admin/ManageAccounts
-        [HttpGet("ManageAccounts")]
-        public async Task<ActionResult> ManageAccounts()
-        {
-            var accounts = await _accountService.GetAllAccountsForManageAsync();
-            return Ok(accounts);
-        }
-
-        [HttpGet("DetailsAccount/{id}")]
-        public async Task<ActionResult<SystemAccount>> DetailsAccount(int id)
-        {
-            var account = await _accountService.GetAccountByIdAsync(id);
-            if (account == null) return NotFound();
-            return account;
-        }
-
-
-        // POST: /Admin/CreateAccount
-        [HttpPost("CreateAccount")]
-        public async Task<ActionResult> CreateAccount(AccountCreateAdminDTO account)
-        {
-            if (ModelState.IsValid)
-            {
-                await _accountService.CreateAccountAsync(account);
-                return Ok(account);
-            }
-            return StatusCode(400, ModelState);
-        }
-
-        // POST: /Admin/EditAccount/{id}
-        [HttpPut("EditAccount/{id}")]
-        public async Task<ActionResult> EditAccount(int id, AccountUpdateAdminDTO dto)
-        {
-            if (ModelState.IsValid)
-            {
-                await _accountService.UpdateAccountAsync(id, dto);
-                return Ok(dto);
-            }
-            return StatusCode(400, ModelState);
-        }
-
-
-
-        // POST: /Admin/DeleteAccount/{id}
-        [HttpDelete("DeleteAccount/{id}")]
-        public async Task<ActionResult> DeleteAccount(int id)
-        {
-            var account = await _accountService.GetAccountByIdAsync(id);
-            if (account == null) return NotFound();
-
-            await _accountService.DeleteAccountAsync(id);
-            return Ok();
         }
 
         // GET: /Admin/Report
@@ -86,7 +31,7 @@ namespace NewsManagementSystem.Controllers
         {
             var reportData = await _unitOfWork.NewsArticles.GetAllByListAsync(n => n.CreatedDate >= startDate &&
                                                                                     n.CreatedDate <= endDate);
-            return Ok(reportData);
+            return Ok(reportData.AsQueryable());
 
         }
 
@@ -108,7 +53,7 @@ namespace NewsManagementSystem.Controllers
                 return Ok("No accounts found matching the search term.");
             }
 
-            return Ok(filteredAccounts);
+            return Ok(filteredAccounts.AsQueryable());
         }
     }
 }

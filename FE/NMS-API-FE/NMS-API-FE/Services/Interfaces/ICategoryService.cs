@@ -4,7 +4,7 @@ namespace NMS_API_FE.Services.Interfaces
 {
     public interface ICategoryService
     {
-        Task<List<CategoryViewModel>> GetAllCategoriesAsync();
+        Task<IEnumerable<CategoryViewModel>> GetAllCategoriesAsync();
         Task<CategoryViewModel> GetCategoryByIdAsync(int id);
         Task CreateCategoryAsync(CategoryViewModel category);
         Task UpdateCategoryAsync(int id, CategoryViewModel category);

@@ -1,7 +1,6 @@
 ﻿using BLL.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace NewsManagementSystem.Controllers
 {
@@ -19,7 +18,8 @@ namespace NewsManagementSystem.Controllers
         [HttpGet("GetArticlesWithActiveCategories")]
         public async Task<ActionResult> GetArticlesWithActiveCategories()
         {
-            return Ok(await _newsArticleService.GetArticlesWithActiveCategories());
+            var list = await _newsArticleService.GetArticlesWithActiveCategories();
+            return Ok(list.AsQueryable());
         }
 
         // GET: LecturerController/Details/5

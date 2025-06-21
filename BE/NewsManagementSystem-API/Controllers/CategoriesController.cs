@@ -1,124 +1,90 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using DAL.Data;
+﻿using BLL.Interfaces;
 using DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
-using BLL.Interfaces;
-using BLL.DTOs;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Formatter;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace NewsManagementSystem.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    //[Authorize(Policy = "Staff")]
-    public class CategoriesController : ControllerBase
+    [Authorize(Policy = "Staff")]
+    public class CategoriesController : ODataController
     {
         private readonly ICategoryService _categoryService;
+
         public CategoriesController(ICategoryService categoryService)
         {
             _categoryService = categoryService;
         }
 
-        // GET: Categories
-        [HttpGet("GetAllCategories")]
-        public async Task<ActionResult> GetAllCategories()
+        // GET: odata/Categories
+        [EnableQuery]
+        public async Task<IActionResult> Get()
         {
-            var newsContext = await _categoryService.GetActiveCategoriesAsync();
-            return Ok(newsContext);
+            var categories = await _categoryService.GetActiveCategoriesAsync();
+            return Ok(categories.AsQueryable());
         }
 
-        // GET: Categories/Details/5
-        [HttpGet("Details/{id}")]
-        public async Task<ActionResult> Details(int? id)
+        // GET: odata/Categories(1)
+        [EnableQuery]
+        public async Task<IActionResult> Get([FromODataUri] int key)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var category = await _categoryService.GetCategoryByIdAsync(id.Value);
+            var category = await _categoryService.GetCategoryByIdAsync(key);
             if (category == null)
-            {
                 return NotFound();
-            }
 
             return Ok(category);
         }
 
-        // POST: Categories/Create
-        [HttpPost("Create")]
-        public async Task<ActionResult> Create(Category categoryCreateDTO)
+        // POST: odata/Categories
+        public async Task<IActionResult> Post([FromBody] Category category)
         {
-            if (ModelState.IsValid)
-            {
-                await _categoryService.CreateCategoryAsync(categoryCreateDTO);
-                return Ok(categoryCreateDTO);
-            }
-            return BadRequest(categoryCreateDTO);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            await _categoryService.CreateCategoryAsync(category);
+            return Created(category);
         }
 
-
-        // POST: Categories/Edit/5
-        [HttpPut("Edit/{id}")]
-        public async Task<IActionResult> Edit(int id, Category categoryCreateDTO)
+        // PUT: odata/Categories(1)
+        public async Task<IActionResult> Put([FromODataUri] int key, [FromBody] Category category)
         {
-            if (id != categoryCreateDTO.CategoryId)
+            if (key != category.CategoryId)
+                return BadRequest("ID mismatch");
+
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
             {
+                await _categoryService.UpdateCategoryAsync(key, category);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Failed to update: {ex.Message}");
+            }
+
+            return Updated(category);
+        }
+
+        // DELETE: odata/Categories(1)
+        public async Task<IActionResult> Delete([FromODataUri] int key)
+        {
+            var category = await _categoryService.GetCategoryByIdAsync(key);
+            if (category == null)
                 return NotFound();
-            }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
-                {
-                    await _categoryService.UpdateCategoryAsync(id, categoryCreateDTO);
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CategoryExists(categoryCreateDTO.CategoryId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return Ok(categoryCreateDTO);
+                await _categoryService.DeactiveCategoryAsync(key);
             }
-            return BadRequest(categoryCreateDTO);
-        }
-
-
-        // POST: Categories/Delete/5
-        [HttpDelete("DeleteConfirmed")]
-        public async Task<ActionResult> DeleteConfirmed(int id)
-        {
-            var category = await _categoryService.GetCategoryByIdAsync(id);
-            if (category != null)
+            catch
             {
-                try
-                {
-                    await _categoryService.DeactiveCategoryAsync(id);
-                }
-                catch (DbUpdateException)
-                {
-                    return StatusCode(StatusCodes.Status500InternalServerError, "Failed to delete category.");
-                }
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to delete category.");
             }
 
-
-            return Ok("Deletion completed");
-        }
-
-        private bool CategoryExists(int id)
-        {
-            return _categoryService.GetCategoryByIdAsync(id) != null;
+            return NoContent();
         }
     }
 }

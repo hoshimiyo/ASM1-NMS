@@ -1,135 +1,58 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using DAL.Data;
-using DAL.Entities;
+﻿using BLL.DTOs;
 using BLL.Interfaces;
-using BLL.DTOs;
-using System.Security.Claims;
-using BLL.Utils;
+using DAL.Entities;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Formatter;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace NewsManagementSystem.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class NewsArticlesController : ControllerBase
+    public class NewsArticlesController : ODataController
     {
         private readonly INewsArticleService _newsArticleService;
-        private readonly ICategoryService _categoryService;
-        private readonly INewsTagService _newsTagService;
-        private readonly ITagService _tagService;
 
-        public NewsArticlesController(INewsArticleService newsArticleService, ICategoryService categoryService, INewsTagService newsTagService, ITagService tagService)
+        public NewsArticlesController(INewsArticleService newsArticleService)
         {
             _newsArticleService = newsArticleService;
-            _categoryService = categoryService;
-            _newsTagService = newsTagService;
-            _tagService = tagService;
         }
 
-        // GET: NewsArticles
-        [HttpGet("GetAllArticles")]
-        public async Task<ActionResult> GetAllArticles()
+        [EnableQuery]
+        public async Task<IActionResult> Get()
         {
-            var list = await _newsArticleService.GetArticlesWithActiveCategories();
-            return Ok(list);
-
+            var articles = await _newsArticleService.GetArticlesWithActiveCategories();
+            return Ok(articles.AsQueryable());
         }
 
-
-        // GET: NewsArticles/Details/5
-        [HttpGet("Details/{id}")]
-        public async Task<ActionResult> Details(string id)
+        [EnableQuery]
+        public async Task<IActionResult> Get([FromODataUri] string key)
         {
-            if (id == null)
-            {
+            var article = await _newsArticleService.GetNewsArticleByIdAsync(key);
+            if (article == null)
                 return NotFound();
-            }
-
-            var newsArticle = await _newsArticleService.GetNewsArticleByIdAsync(id);
-
-            if (newsArticle == null)
-            {
-                return NotFound();
-            }
-
-            return Ok(newsArticle);
+            return Ok(article);
         }
 
-        // POST: NewsArticles/Create
-        [HttpPost("Create/{userId}")]
-        public async Task<ActionResult> Create(NewsArticleCreateDTO newsArticle, int userId)
+        [Authorize(Policy = "Staff")]
+        public async Task<IActionResult> Post([FromBody] NewsArticleCreateDTO dto, [FromODataUri] int userId)
         {
-            if (ModelState.IsValid)
-            {
-                await _newsArticleService.CreateNewsArticleAsync(newsArticle, userId);
-                return Ok(new { message = "Article created successfully." });
-            }
-
-            return BadRequest(new { message = "Failed to create article.", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+            await _newsArticleService.CreateNewsArticleAsync(dto, userId);
+            return Created(dto);
         }
 
-        // POST: NewsArticles/Edit/5
-        [HttpPut("Edit/{id}/{userId}")]
-        public async Task<ActionResult> Edit(string id, NewsArticleUpdateDTO newsArticle, int userId)
+        [Authorize(Policy = "Staff")]
+        public async Task<IActionResult> Put([FromODataUri] string key, [FromBody] NewsArticleUpdateDTO dto, [FromODataUri] int userId)
         {
-            if (ModelState.IsValid)
-            {
-                await _newsArticleService.UpdateNewsArticleAsync(id, newsArticle, userId);
-                return Ok(new { message = "Article updated successfully." });
-            }
-            return BadRequest(new { message = "Failed to update article.", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+            await _newsArticleService.UpdateNewsArticleAsync(key, dto, userId);
+            return Updated(dto);
         }
 
-        // POST: NewsArticles/Delete/5
-        [HttpDelete("Delete/{id}")]
-        public async Task<ActionResult> DeleteConfirmed(string id)
+        [Authorize(Policy = "Staff")]
+        public async Task<IActionResult> Delete([FromODataUri] string key)
         {
-            await _newsArticleService.DeactiveNewsArticleAsync(id);
-            return Ok(new { message = "Article deleted successfully." });
-        }
-
-        // GET: NewsArticles/Search
-        [HttpGet("Search")]
-        public async Task<ActionResult> Search(string searchTerm, int? categoryId, int? tagId)
-        {
-            var articles = await _newsArticleService.GetActiveNewsArticlesAsync();
-
-            if (!string.IsNullOrEmpty(searchTerm))
-            {
-                articles = articles.Where(a => a.NewsTitle.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                                               a.Headline.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
-            }
-
-            if (categoryId.HasValue)
-            {
-                articles = articles.Where(a => a.CategoryId == categoryId.Value).ToList();
-            }
-
-            if (tagId.HasValue)
-            {
-                try
-                {
-                    var taggedArticles = await _newsTagService.GetArticlesFromTagAsync(tagId.Value);
-                    articles = articles.Intersect(taggedArticles).ToList();
-
-                    // If no articles match the tag filter, return an empty list
-                    if (!articles.Any())    
-                    {
-                        return Ok(articles);
-                    }
-                }
-                catch(KeyNotFoundException)
-                {
-                    return Ok(articles); // If tag not found, return the articles without filtering by tag
-                }
-            }
-
-            return Ok(articles);
+            await _newsArticleService.DeactiveNewsArticleAsync(key);
+            return NoContent();
         }
     }
 }

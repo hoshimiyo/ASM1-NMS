@@ -1,4 +1,5 @@
 ﻿using Helpers;
+using NMS_API_FE.Helpers;
 using NMS_API_FE.Models;
 using NMS_API_FE.Services.Interfaces;
 
@@ -7,36 +8,42 @@ namespace NMS_API_FE.Services
     public class CategoryService : ICategoryService
     {
         private readonly HttpClient _httpClient;
-        public const string BaseUrl = "/api/Categories/"; // Adjust the base URL as needed
+        private readonly IHttpContextAccessor _contextAccessor;
+        public const string BaseUrl = "/odata/Categories"; // Adjust the base URL as needed
 
-        public CategoryService(HttpClient client)
+        public CategoryService(HttpClient client, IHttpContextAccessor contextAccessor)
         {
             _httpClient = client ?? throw new ArgumentNullException(nameof(client));
+            _contextAccessor = contextAccessor ?? throw new ArgumentNullException(nameof(_contextAccessor));    
         }
 
         public async Task CreateCategoryAsync(CategoryViewModel category)
         {
-            var response = await _httpClient.PostAsJsonAsync(BaseUrl + "Create", category);
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Post, BaseUrl, "", category);
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task DeleteCategoryAsync(int id)
         {
-            var response = await _httpClient.DeleteAsync(BaseUrl + "DeleteConfirmed?id=" + id);
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Delete, BaseUrl, $"({id})");
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task<List<CategoryViewModel>> GetAllCategoriesAsync()
+        public async Task<IEnumerable<CategoryViewModel>> GetAllCategoriesAsync()
         {
-            var response = await _httpClient.GetAsync(BaseUrl + "GetAllCategories");
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, "");
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            var result = await response.ReadContentAsync<List<CategoryViewModel>>();
-            return result;
+            var result = await response.ReadContentAsync<ODataResponse<CategoryViewModel>>();
+            return result.Value;
         }
 
         public async Task<CategoryViewModel> GetCategoryByIdAsync(int id)
         {
-            var response = await _httpClient.GetAsync(BaseUrl + "Details/" + id);
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, $"({id})");
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var result = await response.ReadContentAsync<CategoryViewModel>();
             return result;
@@ -44,7 +51,8 @@ namespace NMS_API_FE.Services
 
         public async Task UpdateCategoryAsync(int id, CategoryViewModel category)
         {
-            var response = await _httpClient.PutAsJsonAsync(BaseUrl + "Edit/" + id, category);
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Put, BaseUrl, $"({id})", category);
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }
     }

@@ -38,7 +38,7 @@ namespace DAL.Data
 
             modelBuilder.Entity<NewsTag>()
                 .HasOne(nt => nt.Tag)
-                .WithMany(t => t.NewsTags)
+                .WithMany()
                 .HasForeignKey(nt => nt.TagId)
                 .OnDelete(DeleteBehavior.Restrict);
 

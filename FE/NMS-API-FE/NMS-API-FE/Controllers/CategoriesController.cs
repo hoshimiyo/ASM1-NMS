@@ -45,8 +45,12 @@ namespace NewsManagementSystem.Controllers
         }
 
         // GET: Categories/Create
-        public IActionResult Create()
+        public async Task <IActionResult> Create()
         {
+            // Fetch all categories for the dropdown
+            var allCategories = await _categoryService.GetAllCategoriesAsync();
+
+            ViewBag.ParentCategoryId = new SelectList(allCategories, "CategoryId", "CategoryName");
             return View();
         }
 

@@ -1,5 +1,6 @@
 ﻿using Helpers;
 using NMS_API_FE.DTOs;
+using NMS_API_FE.Helpers;
 using NMS_API_FE.Models;
 using NMS_API_FE.Services.Interfaces;
 
@@ -8,27 +9,33 @@ namespace NMS_API_FE.Services
     public class NewsArticleService : INewsArticlesService
     {
         private readonly HttpClient _httpClient;
-        public const string BaseUrl = "/api/NewsArticles/"; // Adjust the base URL as needed
+        public const string BaseUrl = "/odata/NewsArticles"; // Adjust the base URL as needed
+        public const string SearchUrl = "/api/NewsSearch/"; 
+        private readonly IHttpContextAccessor _contextAccessor;
 
-        public NewsArticleService(HttpClient client)
+        public NewsArticleService(HttpClient client, IHttpContextAccessor contextAccessor)
         {
             _httpClient = client ?? throw new ArgumentNullException(nameof(client));
+            _contextAccessor = contextAccessor ?? throw new ArgumentNullException(nameof(_contextAccessor));
         }
         public async Task CreateNewsArticleAsync(NewsArticleCreateDTO dto, int userId)
         {
-            var response = await _httpClient.PostAsJsonAsync(BaseUrl + "Create/" + userId, dto);
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Post, BaseUrl, $"?userId={userId}", dto);
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task DeleteNewsArticleAsync(string id)
         {
-            var response = await _httpClient.DeleteAsync(BaseUrl + "Delete/" + id);
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Delete, BaseUrl, $"({id})");
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task<NewsArticleViewModel> GetNewsArticleByIdAsync(string id)
         {
-            var response = await _httpClient.GetAsync(BaseUrl + "Details/" + id);
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, $"({id})");
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var result = await response.ReadContentAsync<NewsArticleViewModel>();
             return result ?? throw new InvalidOperationException("Article not found");
@@ -36,22 +43,24 @@ namespace NMS_API_FE.Services
 
         public async Task<IEnumerable<NewsArticleViewModel>> GetNewsArticlesAsync()
         {
-            var response = await _httpClient.GetAsync(BaseUrl + "GetAllArticles");
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, "");
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            var result = await response.ReadContentAsync<IEnumerable<NewsArticleViewModel>>();
-            return result ?? Enumerable.Empty<NewsArticleViewModel>();
+            var result = await response.ReadContentAsync<ODataResponse<NewsArticleViewModel>>();
+            return result.Value ?? Enumerable.Empty<NewsArticleViewModel>();
         }
 
         public async Task UpdateNewsArticleAsync(string id, NewsArticleUpdateDTO dto, int userId)
         {
-            var response = await _httpClient.PutAsJsonAsync($"{BaseUrl}Edit/{id}/{userId}", dto);
-            Console.WriteLine("API URL "+ BaseUrl + "Edit/" + id);
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Put, BaseUrl, $"({id})?userId={userId}", dto);
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task<IEnumerable<NewsArticleViewModel>> SearchNewsArticles(string searchTerm, int categoryId, int tagId)
         {
-            var response = await _httpClient.GetAsync($"{BaseUrl}Search?searchTerm={Uri.EscapeDataString(searchTerm)}&categoryId={categoryId}&tagId={tagId}");
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, SearchUrl, $"Search?searchTerm={Uri.EscapeDataString(searchTerm)}&categoryId={categoryId}&tagId={tagId}");
+            var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var result = await response.ReadContentAsync<IEnumerable<NewsArticleViewModel>>();
             return result ?? Enumerable.Empty<NewsArticleViewModel>();

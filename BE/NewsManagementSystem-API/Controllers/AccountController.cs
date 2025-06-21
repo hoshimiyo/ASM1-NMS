@@ -3,10 +3,8 @@ using BLL.Interfaces;
 using BLL.Utils;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.FileProviders;
-using System.Security.Claims;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -35,13 +33,15 @@ namespace NewsManagementSystem_API.Controllers
         {
             string adminEmail = _configuration["AdminCredentials:Email"];
             string adminPassword = _configuration["AdminCredentials:Password"];
-            string token = await _accountService.AuthenticateAsync(dtos);
+            string token;
             if (dtos.accountEmail == adminEmail && dtos.accountPassword == adminPassword)
             {
                 token = _jwtUtils.GenerateAccessTokenAdmin();
                 Console.WriteLine("ADMIN TOKEN :"+ token);
                 return Ok(new { token });
             }
+
+            token = await _accountService.AuthenticateAsync(dtos);
 
             if (token == null)
             {
@@ -52,7 +52,7 @@ namespace NewsManagementSystem_API.Controllers
 
         }
 
-        // POST: /Admin/CreateAccount
+        // POST: /Admin/Register
         [HttpPost("Register")]
         public async Task<IActionResult> Register(AccountCreateDTO dto)
         {
