@@ -68,11 +68,16 @@ namespace NMS_API_FE.Services
             response.EnsureSuccessStatusCode(); // Ensure the request was successful, otherwise throw an exception
         }
 
-        public async Task DeleteAccount(int id)
+        public async Task<bool> DeleteAccount(int id)
         {
             var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Delete, BaseUrl, $"({id})");
             var response = await _httpClient.SendAsync(request);
-            response.EnsureSuccessStatusCode(); // Ensure the request was successful, otherwise throw an exception
+
+            if(response.IsSuccessStatusCode.Equals(false))
+            {
+                return false;
+            }
+            else return true;
         }
 
         public async Task<List<NewsArticleViewModel>> Report(DateTime startDate, DateTime endDate)
@@ -82,14 +87,14 @@ namespace NMS_API_FE.Services
 
             response.EnsureSuccessStatusCode(); // Ensure the request was successful, otherwise throw an exception
 
-            var result = await response.ReadContentAsync<List<NewsArticleViewModel>>();
+            var result = await response.ReadContentAsync<JsonArrayWrapper<NewsArticleViewModel>>();
 
             if (result == null)
             {
                 throw new InvalidOperationException("The response content is null or could not be deserialized into NewsArticleViewModel.");
             }
 
-            return result;
+            return result.Values;
         }
         public async Task<IEnumerable<SystemAccountViewModel>> SearchAccount(string searchTerm)
         {

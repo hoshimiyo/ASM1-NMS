@@ -33,7 +33,7 @@ namespace NMS_API_FE.Services
 
         public async Task<IEnumerable<CategoryViewModel>> GetAllCategoriesAsync()
         {
-            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, "");
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, "?$expand=ParentCategory");
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var result = await response.ReadContentAsync<ODataResponse<CategoryViewModel>>();
@@ -42,7 +42,7 @@ namespace NMS_API_FE.Services
 
         public async Task<CategoryViewModel> GetCategoryByIdAsync(int id)
         {
-            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, $"({id})");
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, $"({id})?$expand=ParentCategory");
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var result = await response.ReadContentAsync<CategoryViewModel>();
@@ -51,7 +51,7 @@ namespace NMS_API_FE.Services
 
         public async Task UpdateCategoryAsync(int id, CategoryViewModel category)
         {
-            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Put, BaseUrl, $"({id})", category);
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Put, BaseUrl, $"({id})?$expand=ParentCategory", category);
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }

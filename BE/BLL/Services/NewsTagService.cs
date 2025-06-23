@@ -12,22 +12,28 @@ namespace BLL.Services
     public class NewsTagService : INewsTagService
     {
         private readonly IUnitOfWork _unitOfWork;
+
         public NewsTagService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
         }
 
-        public async Task AddNewsTagAsync(string newsArticleId, int tagId)
+        public async Task<bool> AddNewsTagAsync(string newsArticleId, int tagId)
         {
             var article = await _unitOfWork.NewsArticles.GetByIdAsync(newsArticleId);
             var tag = await _unitOfWork.Tags.GetByIdAsync(tagId);
-            if (article == null)
+
+            // If article or tag not found, return false (indicating failure to add)
+            if (article == null || tag == null)
             {
-                throw new KeyNotFoundException($"NewsArticle with ID '{newsArticleId}' not found.");
+                return false;
             }
-            if (tag == null)
+
+            // Check if the association already exists to prevent duplicates
+            var existingNewsTag = await _unitOfWork.NewsTags.FirstOrDefaultAsync(nt => nt.NewsArticleId == newsArticleId && nt.TagId == tagId);
+            if (existingNewsTag != null)
             {
-                throw new KeyNotFoundException($"Tag with ID '{tagId}' not found.");
+                return false; // Or true, depending on if you consider "already exists" as a successful "add"
             }
 
             var newsTag = new NewsTag
@@ -35,31 +41,24 @@ namespace BLL.Services
                 NewsArticleId = newsArticleId,
                 TagId = tagId
             };
+
             await _unitOfWork.NewsTags.AddAsync(newsTag);
             await _unitOfWork.SaveChangesAsync();
+            return true; // Successfully added
         }
 
-        public async Task DeleteNewsTagAsync(string newsArticleId, int tagId)
+        public async Task<bool> DeleteNewsTagAsync(string newsArticleId, int tagId)
         {
-            var article = await _unitOfWork.NewsArticles.GetByIdAsync(newsArticleId);
-            var tag = await _unitOfWork.Tags.GetByIdAsync(tagId);
-            if (article == null)
-            {
-                throw new KeyNotFoundException($"Article with ID {newsArticleId} not found");
-            }
-            if (tag == null)
-            {
-                throw new KeyNotFoundException($"Tag with ID {tagId} does not exist");
-            }
             var newsTag = await _unitOfWork.NewsTags.FirstOrDefaultAsync(nt => nt.NewsArticleId == newsArticleId && nt.TagId == tagId);
 
             if (newsTag == null)
             {
-                throw new InvalidOperationException($"Tag with ID {tagId} is not associated with the article {newsArticleId}");
+                return false;
             }
+
             await _unitOfWork.NewsTags.DeleteAsync(newsTag);
             await _unitOfWork.SaveChangesAsync();
-
+            return true; // Successfully deleted
         }
 
         public async Task<IEnumerable<Tag>> GetTagsOfArticleAsync(string newsArticleId)
@@ -67,16 +66,12 @@ namespace BLL.Services
             var article = await _unitOfWork.NewsArticles.GetByIdAsync(newsArticleId);
             if (article == null)
             {
-                throw new KeyNotFoundException($"Article with ID {newsArticleId} not found");
+                return Enumerable.Empty<Tag>();
             }
 
-            var hasTags = await _unitOfWork.NewsTags.AnyAsync(nt => nt.NewsArticleId == newsArticleId);
-            if (!hasTags)
-            {
-                throw new KeyNotFoundException($"This article has no tags");
-            }
             var tags = await _unitOfWork.NewsTags.GetTagsFromArticleAsync(newsArticleId);
-            return tags;
+
+            return tags ?? Enumerable.Empty<Tag>();
         }
 
         public async Task<IEnumerable<NewsArticle>> GetArticlesFromTagAsync(int tagId)
@@ -84,16 +79,12 @@ namespace BLL.Services
             var tag = await _unitOfWork.Tags.GetByIdAsync(tagId);
             if (tag == null)
             {
-                throw new KeyNotFoundException($"Tag with ID {tagId} not found");
+                return Enumerable.Empty<NewsArticle>();
             }
-            var hasArticles = await _unitOfWork.NewsTags.AnyAsync(nt => nt.TagId == tagId);
-            if(!hasArticles)
-            {
-                throw new KeyNotFoundException("No article associated with this tag");
-            }
-            var articles = await _unitOfWork.NewsTags.GetArticlesFromTagAsync(tagId);
-            return articles;
 
+            var articles = await _unitOfWork.NewsTags.GetArticlesFromTagAsync(tagId);
+
+            return articles ?? Enumerable.Empty<NewsArticle>();
         }
     }
 }

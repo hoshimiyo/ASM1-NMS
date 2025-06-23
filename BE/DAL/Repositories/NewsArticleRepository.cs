@@ -74,7 +74,8 @@ namespace DAL.Repositories
         public async Task<IEnumerable<NewsArticle>> GetArticlesWithActiveCategories()
         {
             return await _newsContext.NewsArticles
-                             .Include(article => article.Category)   // Include Category to access CategoryDescription
+                            .Where(article => article.NewsStatus == true)    
+                            .Include(article => article.Category)   // Include Category to access CategoryDescription
                             .Include(article => article.CreatedBy)  // Include CreatedBy to access AccountId
                             .Include(article => article.UpdatedBy)  // Include UpdatedBy to access AccountId
                             .Include(article => article.NewsTags)

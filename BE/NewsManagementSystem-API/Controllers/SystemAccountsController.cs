@@ -37,8 +37,8 @@ namespace NewsManagementSystem.Controllers
         public async Task<IActionResult> Post([FromBody] AccountCreateAdminDTO dto)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
-            await _accountService.CreateAccountAsync(dto);
-            return Created(dto);
+            var result = await _accountService.CreateAccountAsync(dto);
+            return Created(result);
         }
 
         public async Task<IActionResult> Put([FromODataUri] int key, [FromBody] AccountUpdateAdminDTO dto)
@@ -53,8 +53,12 @@ namespace NewsManagementSystem.Controllers
             var account = await _accountService.GetAccountByIdAsync(key);
             if (account == null) return NotFound();
 
-            await _accountService.DeleteAccountAsync(key);
-            return NoContent();
+            var result = await _accountService.DeleteAccountAsync(key);
+
+            if (!result.Success)
+                return (BadRequest(result.Message));
+
+            return Ok(result.Message);
         }
     }
 }

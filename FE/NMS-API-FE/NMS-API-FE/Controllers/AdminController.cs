@@ -88,8 +88,13 @@ namespace NewsManagementSystem.Controllers
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            await _adminService.DeleteAccount(id);
-            TempData["Message"] = "Account deleted successfully.";
+            var result = await _adminService.DeleteAccount(id);
+            if(result == true)
+            {
+                TempData["Message"] = "Account deleted successfully.";
+            }
+            else TempData["Error"] = "Account has ongoing articles, can't delete.";
+
             return RedirectToAction(nameof(ManageAccounts));
         }
 

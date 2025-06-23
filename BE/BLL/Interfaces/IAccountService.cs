@@ -15,10 +15,10 @@ namespace BLL.Interfaces
         Task<IEnumerable<SystemAccount>> GetAllAccountsForManageAsync();
         Task<SystemAccount> GetAccountByIdAsync(int id);
         Task CreateAccountAsync(AccountCreateDTO account);
-        Task CreateAccountAsync(AccountCreateAdminDTO account);
+        Task<SystemAccount> CreateAccountAsync(AccountCreateAdminDTO account);
         Task UpdateAccountAsync(int id, AccountDTO account);
         Task UpdateAccountAsync(int id, AccountUpdateAdminDTO account);
-        Task DeleteAccountAsync(int id);
+        Task<(bool Success, string Message)> DeleteAccountAsync(int id);
 
         
     }

@@ -27,14 +27,14 @@ namespace NMS_API_FE.Services
 
         public async Task DeleteNewsArticleAsync(string id)
         {
-            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Delete, BaseUrl, $"({id})");
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Delete, BaseUrl, $"('{id.ToString()}')");
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task<NewsArticleViewModel> GetNewsArticleByIdAsync(string id)
         {
-            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, $"({id})");
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, $"('{id.ToString()}')?$expand=Category,CreatedBy,UpdatedBy,NewsTags($expand=Tag)");
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var result = await response.ReadContentAsync<NewsArticleViewModel>();
@@ -43,16 +43,17 @@ namespace NMS_API_FE.Services
 
         public async Task<IEnumerable<NewsArticleViewModel>> GetNewsArticlesAsync()
         {
-            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, "");
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, "?$expand=Category,CreatedBy,UpdatedBy,NewsTags($expand=Tag)");
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
+            Console.WriteLine(response.Content);
             var result = await response.ReadContentAsync<ODataResponse<NewsArticleViewModel>>();
             return result.Value ?? Enumerable.Empty<NewsArticleViewModel>();
         }
 
         public async Task UpdateNewsArticleAsync(string id, NewsArticleUpdateDTO dto, int userId)
         {
-            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Put, BaseUrl, $"({id})?userId={userId}", dto);
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Put, BaseUrl, $"('{id.ToString()}')?userId={userId}", dto);
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }

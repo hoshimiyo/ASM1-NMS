@@ -20,7 +20,7 @@ namespace NMS_API_FE.Services
 
         public async Task AddNewsTagAsync(string NewsArticleId, int TagId)
         {
-            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Post, BaseUrl, "", new { NewsArticleId, TagId});
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Post, BaseUrl, "", new {NewsArticleId, TagId});
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
         }
@@ -30,8 +30,9 @@ namespace NMS_API_FE.Services
             var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, NewsTagRelationsUrl, $"GetTagsOfArticleAsync/{NewsArticleId}");
             var response = await _httpClient.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            var result = await response.ReadContentAsync<ODataResponse<TagViewModel>>();
-            return result.Value ?? Enumerable.Empty<TagViewModel>();
+            Console.WriteLine(response.Content);
+            var result = await response.ReadContentAsync<JsonArrayWrapper<TagViewModel>>();
+            return result.Values ?? Enumerable.Empty<TagViewModel>();
         }
 
         public async Task<IEnumerable<NewsArticleViewModel>> GetArticlesFromTagAsync(int TagId)

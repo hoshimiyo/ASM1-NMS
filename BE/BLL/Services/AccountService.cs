@@ -4,6 +4,7 @@ using BLL.Utils;
 using DAL.Entities;
 using DAL.UnitOfWork;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
@@ -66,7 +67,7 @@ namespace BLL.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task CreateAccountAsync(AccountCreateAdminDTO dto)
+        public async Task<SystemAccount> CreateAccountAsync(AccountCreateAdminDTO dto)
         {
             var account = new SystemAccount
             {
@@ -78,6 +79,8 @@ namespace BLL.Services
 
             await _unitOfWork.SystemAccounts.AddAsync(account);
             await _unitOfWork.SaveChangesAsync();
+
+            return account;
         }
 
         public async Task UpdateAccountAsync(int id, AccountDTO account)
@@ -133,13 +136,30 @@ namespace BLL.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task DeleteAccountAsync(int id)
+        public async Task<(bool Success, string Message)> DeleteAccountAsync(int id)
         {
             var account = await _unitOfWork.SystemAccounts.FirstOrDefaultAsync(a => a.AccountId == id);
             if (account == null) throw new KeyNotFoundException("Account not found.");
 
-            _unitOfWork.SystemAccounts.Delete(account);
-            await _unitOfWork.SaveChangesAsync();
+            bool hasNewsArticles = await _unitOfWork.NewsArticles.AnyAsync(na => na.CreatedById == id);
+
+            if (hasNewsArticles)
+            {
+                return (false, $"Cannot delete account '{id}' because there are existing news articles associated with it. Please delete the associated news articles first.");
+            }
+
+            try
+            {
+                _unitOfWork.SystemAccounts.Delete(account);
+                await _unitOfWork.SaveChangesAsync();
+                return (true, $"Account '{id}' deleted successfully.");
+            }
+            catch (Exception ex) // Catching generic Exception for unexpected database issues
+            {
+                // Log the exception for internal debugging
+                // _logger.LogError(ex, $"An unexpected error occurred while deleting account '{accountId}'.");
+                return (false, "An unexpected error occurred during account deletion. Please try again later.");
+            }
         }
 
       

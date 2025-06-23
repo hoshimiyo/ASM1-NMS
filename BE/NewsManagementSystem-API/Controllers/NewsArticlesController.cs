@@ -1,11 +1,13 @@
 ﻿using BLL.DTOs;
 using BLL.Interfaces;
+using BLL.Services;
 using DAL.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Formatter;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.AspNetCore.OData.Routing.Controllers;
+using System.Security.Claims;
 
 namespace NewsManagementSystem.Controllers
 {
@@ -31,14 +33,17 @@ namespace NewsManagementSystem.Controllers
             var article = await _newsArticleService.GetNewsArticleByIdAsync(key);
             if (article == null)
                 return NotFound();
+
             return Ok(article);
         }
 
         [Authorize(Policy = "Staff")]
-        public async Task<IActionResult> Post([FromBody] NewsArticleCreateDTO dto, [FromODataUri] int userId)
+        public async Task<IActionResult> Post([FromBody] NewsArticleCreateDTO dto)
         {
-            await _newsArticleService.CreateNewsArticleAsync(dto, userId);
-            return Created(dto);
+            var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+
+            var article = await _newsArticleService.CreateNewsArticleAsync(dto, userId);
+            return Created(article);
         }
 
         [Authorize(Policy = "Staff")]

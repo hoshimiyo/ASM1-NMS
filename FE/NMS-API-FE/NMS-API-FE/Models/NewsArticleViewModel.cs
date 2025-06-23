@@ -11,7 +11,7 @@ namespace NMS_API_FE.Models
     {
         [Key]
         [Required]
-        public string NewsArticleId { get; set; } = Guid.NewGuid().ToString();
+        public string NewsArticleId { get; set; }
         public string? NewsTitle { get; set; }
         [Required]
         public string Headline { get; set; }
@@ -26,6 +26,6 @@ namespace NMS_API_FE.Models
         public virtual SystemAccountViewModel? UpdatedBy { get; set; } // Navigation for UpdatedBy
         public virtual ICollection<NewsTagViewModel> NewsTags { get; set; } = new List<NewsTagViewModel>(); // Many-to-many relationship
         public int CategoryId { get; set; }
-        public virtual CategoryViewModel Category { get; set; }
+        public virtual CategoryViewModel? Category { get; set; }
     }
 }

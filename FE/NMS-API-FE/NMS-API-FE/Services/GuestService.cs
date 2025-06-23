@@ -20,7 +20,7 @@ namespace NMS_API_FE.Services
 
         public async Task<IEnumerable<NewsArticleViewModel>> GetArticlesWithActiveCategories()
         {
-            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, "");
+            var request = await HttpClientExtensions.GenerateRequest(_contextAccessor, HttpMethod.Get, BaseUrl, "?$expand=Category,CreatedBy,UpdatedBy,NewsTags($expand=Tag)");
             var response = await _httpClient.SendAsync(request);
 
             var result = await response.ReadContentAsync<ODataResponse<NewsArticleViewModel>>();

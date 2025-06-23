@@ -1,11 +1,11 @@
 ﻿using BLL.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
 
 namespace NewsManagementSystem.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class GuestController : ControllerBase
+    public class GuestController : ODataController
     {
         private readonly INewsArticleService _newsArticleService;
         public GuestController(INewsArticleService newsArticleService)
@@ -13,8 +13,8 @@ namespace NewsManagementSystem.Controllers
             _newsArticleService = newsArticleService;
         }
 
-        [HttpGet("Index")]
-        public async Task<ActionResult> All()
+        [EnableQuery]
+        public async Task<ActionResult> Get()
         {
             var list = await _newsArticleService.GetArticlesWithActiveCategories();
             return Ok(list.AsQueryable());

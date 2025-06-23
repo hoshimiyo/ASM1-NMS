@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OData.Edm;
 using Microsoft.OData.ModelBuilder;
+using Microsoft.OData.UriParser;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json;
@@ -36,10 +37,14 @@ public class Program
             {
                 options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+                options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
             })
             .AddOData(option => option.Select().Filter().Count().OrderBy().Expand()
             .SetMaxTop(100)
-            .AddRouteComponents("odata", GetEdmModel()));
+            .EnableQueryFeatures()
+            .AddRouteComponents("odata", GetEdmModel(),
+                services => services.AddSingleton<ODataUriResolver>(
+                    sp => new UnqualifiedODataUriResolver() { EnableCaseInsensitive = true })));
 
 
         builder.Services.AddDbContext<NewsContext>(options =>
@@ -223,7 +228,7 @@ public class Program
     {
         ODataConventionModelBuilder builder = new ODataConventionModelBuilder();
         builder.EntitySet<Category>("Categories");
-        builder.EntitySet<NewsArticle>("NewsArticles");
+        var articles = builder.EntitySet<NewsArticle>("NewsArticles");
         builder.EntitySet<NewsTag>("NewsTags");
         builder.EntitySet<SystemAccount>("SystemAccounts");
         builder.EntitySet<Tag>("Tags");

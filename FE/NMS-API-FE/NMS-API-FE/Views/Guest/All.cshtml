@@ -88,6 +88,7 @@
 
 <h1>Latest News</h1>
 
+
 <div class="news-grid-container">
     @foreach (var item in Model)
     {
@@ -95,13 +96,13 @@
             <h3>@item.NewsTitle</h3>
             <p class="headline">@item.Headline</p>
             <p class="meta-info">
-                Published on: @item.ModifiedDate.ToString() | Category: @item.Category?.CategoryDescription
+                Published on: @item.ModifiedDate.ToString() | Category: @item.Category?.CategoryName
             </p>
             <div class="article-content">
                 @* Display a limited amount of content - adjust length as needed *@
                 @Html.Raw(item.NewsContent!.Length > 50 ? item.NewsContent.Substring(0, 50) + "..." : item.NewsContent)
             </div>
-            @foreach (var a in item.NewsTags)
+            @foreach (var a in item.NewsTags ?? Enumerable.Empty<NewsTagViewModel>())
             {
                 <button type="button" class="btn btn-outline-primary" style="margin-bottom: 10px">@a.Tag.TagName</button>
             }

@@ -9,7 +9,7 @@ namespace NMS_API_FE.Services.Interfaces
         Task<SystemAccountViewModel> DetailsAccount(int id);
         Task CreateAccount(AccountCreateAdminDTO accountCreateAdminDTO);
         Task EditAccount(int id, AccountUpdateAdminDTO accountUpdateAdminDTO);
-        Task DeleteAccount(int id);
+        Task<bool> DeleteAccount(int id);
         Task<List<NewsArticleViewModel>> Report(DateTime startDate, DateTime endDate);
         Task<IEnumerable<SystemAccountViewModel>> SearchAccount(string searchTerm);
     }

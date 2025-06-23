@@ -28,7 +28,7 @@ namespace BLL.Services
             _userUtils = userUtils;
             _newsArticleRepository = newsArticleRepository;
         }
-        public async Task CreateNewsArticleAsync(NewsArticleCreateDTO dto, int userId)
+        public async Task<NewsArticle> CreateNewsArticleAsync(NewsArticleCreateDTO dto, int userId)
         {
             Console.WriteLine("UserId: " + userId);
             var user = await _unitOfWork.SystemAccounts.GetByIdAsync(userId); // Fetch user by ID
@@ -53,8 +53,10 @@ namespace BLL.Services
                 NewsSource = dto.NewsSource,  // Optional
                 NewsStatus = dto.NewsStatus,  // Default to true if not provided
                 CategoryId = dto.CategoryId,
+                Category = _unitOfWork.Categories.GetByIdAsync(dto.CategoryId).Result, // Fetch category by ID
                 ModifiedDate = DateTime.UtcNow,
-                CreatedById = userId
+                CreatedById = userId,
+                CreatedBy = user,  // Set the user who created the article
             };
 
             // Add article to the repository
@@ -80,11 +82,13 @@ namespace BLL.Services
 
             // Save changes
             await _unitOfWork.SaveChangesAsync();
+            return article;
         }
 
         public async Task DeactiveNewsArticleAsync(string id)
         {
             var article = await _unitOfWork.NewsArticles.GetByIdAsync(id);
+
             if (article != null)
             {
                 article.NewsStatus = false;

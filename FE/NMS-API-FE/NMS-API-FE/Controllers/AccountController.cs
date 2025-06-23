@@ -76,6 +76,7 @@ namespace NMS_API_FE.Controllers
             if (ModelState.IsValid)
             {
                 await _accountService.Register(registerDTO);
+                TempData["Message"] = "Register Successful! Please Login.";
                 return RedirectToAction(nameof(Login));
             }
             return View(ModelState);
